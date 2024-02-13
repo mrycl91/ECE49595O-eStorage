@@ -20,8 +20,10 @@ struct ContentView: View {
                             HStack {
                                 VStack(alignment: .leading) {
                                     Text(" \(items[index].name)")
+                                        .foregroundColor(isItemExpired(items[index].expirationDate) ? .red : .primary)
                                     if let expirationDate = items[index].expirationDate {
                                         Text("Expiration Date: \(formattedDate(expirationDate))")
+                                            .foregroundColor(isItemExpired(expirationDate) ? .red : .secondary)
                                     }
                                 }
                                 Spacer()
@@ -35,6 +37,13 @@ struct ContentView: View {
                     }
                     .onDelete(perform: deleteItems)
                 }
+
+                // New Button to delete all expired items
+                Button("Delete Expired Items", action: {
+                    deleteAllExpiredItems()
+                })
+                .foregroundColor(.red)
+                .padding()
 
                 NavigationLink(destination: AddItemView(onAdd: { newItem in
                     addItem(newItem)
@@ -88,8 +97,38 @@ struct ContentView: View {
         formatter.dateStyle = .medium
         return formatter.string(from: date)
     }
-}
 
+    private func isItemExpired(_ expirationDate: Date?) -> Bool {
+        guard let expirationDate = expirationDate else {
+            return false
+        }
+        let currentDate = Date()
+
+        return currentDate > expirationDate
+    }
+
+    private func deleteAllExpiredItems() {
+        let currentDate = Date()
+        let expiredItemsIndices = items.indices.filter { index in
+            guard let expirationDate = items[index].expirationDate else {
+                return false
+            }
+            return currentDate > expirationDate
+        }
+
+        // Display an alert if there are no expired items to delete
+        guard !expiredItemsIndices.isEmpty else {
+            showingDeleteAlert = true
+            selectedItem = nil
+            return
+        }
+
+        // Delete expired items
+        for index in expiredItemsIndices.reversed() {
+            items.remove(at: index)
+        }
+    }
+}
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {

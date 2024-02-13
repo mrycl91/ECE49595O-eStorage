@@ -14,7 +14,7 @@ struct AddItemView: View {
                 TextField("Enter Item Name", text: $itemName)
                     .padding()
 
-                TextField("Enter Expiration Date in yymmdd or mmdd", text: $expirationDateInput)
+                TextField("Enter Expiration Date in yyyy-mm-dd or mm-dd", text: $expirationDateInput)
                     .onTapGesture {
                         showingDatePicker = true
                     }
@@ -36,19 +36,17 @@ struct AddItemView: View {
                 Button("Add Item", action: {
                     let newItem = createItem()
                     onAdd(newItem)
-                    presentationMode.wrappedValue.dismiss() // Dismiss the AddItemView
+                    presentationMode.wrappedValue.dismiss() 
                 })
                 .padding()
 
                 // Button for Barcode Lookup (Not implemented)
                 Button("Add Item by Barcode", action: {
-                    // Implement barcode lookup functionality here
                 })
                 .padding()
 
                 // Button for Text Recognition (Not implemented)
                 Button("Add Item by Text Recognition", action: {
-                    // Implement text recognition functionality here
                 })
                 .padding()
             }
@@ -60,22 +58,28 @@ struct AddItemView: View {
         var components = DateComponents()
         components.year = Calendar.current.component(.year, from: Date())
 
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "MMdd"
-        if let date = dateFormatter.date(from: expirationDateInput) {
-            components.month = Calendar.current.component(.month, from: date)
-            components.day = Calendar.current.component(.day, from: date)
+        if expirationDateInput.isEmpty {
+            components.month = Calendar.current.component(.month, from: Date())
+            components.day = Calendar.current.component(.day, from: Date())
         } else {
-            dateFormatter.dateFormat = "yyMMdd"
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "MM-dd"
             if let date = dateFormatter.date(from: expirationDateInput) {
-                components.year = Calendar.current.component(.year, from: date)
                 components.month = Calendar.current.component(.month, from: date)
                 components.day = Calendar.current.component(.day, from: date)
+            } else {
+                dateFormatter.dateFormat = "yyyy-MM-dd"
+                if let date = dateFormatter.date(from: expirationDateInput) {
+                    components.year = Calendar.current.component(.year, from: date)
+                    components.month = Calendar.current.component(.month, from: date)
+                    components.day = Calendar.current.component(.day, from: date)
+                }
             }
         }
 
         return Item(name: itemName, expirationDate: Calendar.current.date(from: components))
     }
+
 }
 
 struct AddItemView_Previews: PreviewProvider {

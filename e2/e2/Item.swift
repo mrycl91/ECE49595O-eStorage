@@ -20,14 +20,14 @@ class Item: Identifiable, ObservableObject, Equatable {
     init(name: String, expirationDate: Date? = nil) {
         self.name = name
         self.expirationDate = expirationDate
-        self.notificationTime = expirationDate?.noon() // Set default notification time to noon on the expiration date
-        self.isNotificationEnabled = false // Enable notification by default
+        self.notificationTime = expirationDate?.midnight()
+        self.isNotificationEnabled = false
         self.priordate=0
     }
 }
 
 extension Date {
-    func noon() -> Date {
-        return Calendar.current.date(bySettingHour: 12, minute: 0, second: 0, of: self) ?? self
+    func midnight() -> Date {
+        return Calendar.current.date(bySettingHour: 23, minute: 59, second: 59, of: self) ?? self
     }
 }
