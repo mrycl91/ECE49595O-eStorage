@@ -1,6 +1,4 @@
 // ContentView.swift
-// e2
-// Created by 李京樺 on 2024/1/28.
 
 import SwiftUI
 
@@ -10,6 +8,9 @@ struct ContentView: View {
     @State private var selectedItem: Item?
     @State private var showingDeleteAlert = false
     @State private var navigationTag: Int?
+
+    // Key for UserDefaults
+    private let itemsKey = "StoredItemsKey"
 
     var body: some View {
         NavigationView {
@@ -68,6 +69,8 @@ struct ContentView: View {
                 }
             }
             .navigationTitle("eStorage🍔")
+            .onAppear(perform: loadItems)
+            .onDisappear(perform: saveItems)
         }
     }
 
@@ -126,6 +129,20 @@ struct ContentView: View {
         // Delete expired items
         for index in expiredItemsIndices.reversed() {
             items.remove(at: index)
+        }
+    }
+
+    private func loadItems() {
+        if let data = UserDefaults.standard.data(forKey: itemsKey) {
+            if let decodedItems = try? JSONDecoder().decode([Item].self, from: data) {
+                items = decodedItems
+            }
+        }
+    }
+
+    private func saveItems() {
+        if let encodedData = try? JSONEncoder().encode(items) {
+            UserDefaults.standard.set(encodedData, forKey: itemsKey)
         }
     }
 }
