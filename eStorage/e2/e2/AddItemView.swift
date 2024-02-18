@@ -37,18 +37,23 @@ struct AddItemView: View {
                 Button("Add Item", action: {
                     let newItem = createItem()
                     onAdd(newItem)
+
+                    // Save the new item to UserDefaults
+                    saveItemToUserDefaults(newItem)
+
+                    // Dismiss the view
                     presentationMode.wrappedValue.dismiss()
                 })
                 .padding()
 
                 NavigationLink(destination: BarCodeCameraView(), isActive: $navigateToBarCodeCameraView) {
-                        EmptyView()
-                    }
-                    // Button for Barcode Lookup (Not implemented)
-                    Button("Add Item by Barcode", action: {
-                        // Implement barcode lookup functionality here
-                        self.navigateToBarCodeCameraView = true
-                    })
+                    EmptyView()
+                }
+                // Button for Barcode Lookup (Not implemented)
+                Button("Add Item by Barcode", action: {
+                    // Implement barcode lookup functionality here
+                    self.navigateToBarCodeCameraView = true
+                })
                 .padding()
 
                 // Button for Text Recognition (Not implemented)
@@ -86,6 +91,19 @@ struct AddItemView: View {
         return Item(name: itemName, expirationDate: Calendar.current.date(from: components))
     }
 
+    private func saveItemToUserDefaults(_ item: Item) {
+        if var existingItems = UserDefaults.standard.array(forKey: "StoredItemsKey") as? [Data] {
+            // Convert the item to Data
+            if let itemData = try? JSONEncoder().encode(item) {
+                existingItems.append(itemData)
+                UserDefaults.standard.set(existingItems, forKey: "StoredItemsKey")
+            }
+        } else {
+            // If no existing items, create a new array with the current item
+            let items: [Data] = [try? JSONEncoder().encode(item)].compactMap { $0 }
+            UserDefaults.standard.set(items, forKey: "StoredItemsKey")
+        }
+    }
 }
 
 struct AddItemView_Previews: PreviewProvider {
