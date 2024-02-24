@@ -39,14 +39,14 @@ struct ContentView: View {
                     .padding(8)
                 
             } else{
-                Button("Text"){
-                    showSheet = true
-                    classifyText = true
-                    classifyObject = false
-                }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 10)
-                .border(.gray)
+//                Button("Text"){
+//                    showSheet = true
+//                    classifyText = true
+//                    classifyObject = false
+//                }
+//                .padding(.horizontal, 20)
+//                .padding(.vertical, 10)
+//                .border(.gray)
                 
                 Button("Object"){
                     showSheet = true
@@ -78,7 +78,14 @@ struct ContentView: View {
             if imageCapture != nil{
                 Button("Confirm"){
                     print("Click Confirm")
-                    imageCapture = nil // just tmp for go back
+                    if classifyObject{
+                        showSheet = true
+                        classifyText = true
+                        classifyObject = false
+                        
+                    } else{
+                        imageCapture = nil // just tmp for go back
+                    }
                 }
                 Button("Retake"){
                     showSheet = true
