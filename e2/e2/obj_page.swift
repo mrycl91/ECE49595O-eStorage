@@ -73,7 +73,7 @@ struct obj_page: View {
             ImgPicker(sourceType: .camera, selectedImage: self.$imageCapture)
         }
         
-        VStack{
+        HStack{
             if imageCapture != nil{
                 Button("Confirm, and do text recogntion"){
                     print("Click Confirm")
