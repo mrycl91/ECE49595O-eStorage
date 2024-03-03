@@ -10,7 +10,6 @@ struct obj_page: View {
     @State private var classifyObject = true
     
     private var model: Resnet50?
-    
     // initialize model
     init() {
         do {
@@ -187,42 +186,42 @@ struct obj_page: View {
     ContentView()
 }
 
-extension UIImage {
-    // transform UIImage to CVPixelBuffer
-    func toPixelBuffer(pixelFormatType: OSType, width: Int, height: Int) -> CVPixelBuffer? {
-        var pixelBuffer: CVPixelBuffer?
-        let attrs: [String: NSNumber] = [
-            kCVPixelBufferCGImageCompatibilityKey as String: NSNumber(booleanLiteral: true),
-            kCVPixelBufferCGBitmapContextCompatibilityKey as String: NSNumber(booleanLiteral: true)
-        ]
-        
-        // create CVPixelBuffer
-        let status = CVPixelBufferCreate(kCFAllocatorDefault, width, height, pixelFormatType, attrs as CFDictionary, &pixelBuffer)
-        
-        guard status == kCVReturnSuccess else {
-            return nil
-        }
-        
-        // create CVPixelBuffer Base Address
-        CVPixelBufferLockBaseAddress(pixelBuffer!, CVPixelBufferLockFlags(rawValue: 0))
-        let pixelData = CVPixelBufferGetBaseAddress(pixelBuffer!)
-        
-        // create CGContext
-        let rgbColorSpace = CGColorSpaceCreateDeviceRGB()
-        let context = CGContext(data: pixelData, width: width, height: height, bitsPerComponent: 8, bytesPerRow: CVPixelBufferGetBytesPerRow(pixelBuffer!), space: rgbColorSpace, bitmapInfo: CGImageAlphaInfo.noneSkipFirst.rawValue)
-        
-        // adjust axis
-        context?.translateBy(x: 0, y: CGFloat(height))
-        context?.scaleBy(x: 1.0, y: -1.0)
-        
-        // draw graphics
-        UIGraphicsPushContext(context!)
-        draw(in: CGRect(x: 0, y: 0, width: CGFloat(width), height: CGFloat(height)))
-        UIGraphicsPopContext()
-        
-        // adjust base address and return CVPixelBuffer
-        CVPixelBufferUnlockBaseAddress(pixelBuffer!, CVPixelBufferLockFlags(rawValue: 0))
-        
-        return pixelBuffer
-    }
-}
+//extension UIImage {
+//    // transform UIImage to CVPixelBuffer
+//    func toPixelBuffer(pixelFormatType: OSType, width: Int, height: Int) -> CVPixelBuffer? {
+//        var pixelBuffer: CVPixelBuffer?
+//        let attrs: [String: NSNumber] = [
+//            kCVPixelBufferCGImageCompatibilityKey as String: NSNumber(booleanLiteral: true),
+//            kCVPixelBufferCGBitmapContextCompatibilityKey as String: NSNumber(booleanLiteral: true)
+//        ]
+//        
+//        // create CVPixelBuffer
+//        let status = CVPixelBufferCreate(kCFAllocatorDefault, width, height, pixelFormatType, attrs as CFDictionary, &pixelBuffer)
+//        
+//        guard status == kCVReturnSuccess else {
+//            return nil
+//        }
+//        
+//        // create CVPixelBuffer Base Address
+//        CVPixelBufferLockBaseAddress(pixelBuffer!, CVPixelBufferLockFlags(rawValue: 0))
+//        let pixelData = CVPixelBufferGetBaseAddress(pixelBuffer!)
+//        
+//        // create CGContext
+//        let rgbColorSpace = CGColorSpaceCreateDeviceRGB()
+//        let context = CGContext(data: pixelData, width: width, height: height, bitsPerComponent: 8, bytesPerRow: CVPixelBufferGetBytesPerRow(pixelBuffer!), space: rgbColorSpace, bitmapInfo: CGImageAlphaInfo.noneSkipFirst.rawValue)
+//        
+//        // adjust axis
+//        context?.translateBy(x: 0, y: CGFloat(height))
+//        context?.scaleBy(x: 1.0, y: -1.0)
+//        
+//        // draw graphics
+//        UIGraphicsPushContext(context!)
+//        draw(in: CGRect(x: 0, y: 0, width: CGFloat(width), height: CGFloat(height)))
+//        UIGraphicsPopContext()
+//        
+//        // adjust base address and return CVPixelBuffer
+//        CVPixelBufferUnlockBaseAddress(pixelBuffer!, CVPixelBufferLockFlags(rawValue: 0))
+//        
+//        return pixelBuffer
+//    }
+//}
