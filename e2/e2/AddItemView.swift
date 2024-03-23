@@ -60,6 +60,7 @@ struct AddItemView: View {
                     .buttonBorderShape(.capsule)
                     
                     Button("Barcode", action: {
+                        navigateToBarCodeCameraView = true
                     })
                     .buttonStyle(.bordered)
                     .buttonBorderShape(.capsule)
@@ -155,6 +156,10 @@ struct AddItemView: View {
                     presentationMode.wrappedValue.dismiss()
                 })
                 .padding(30)
+                
+                NavigationLink(destination: BarCodeCameraView(), isActive: $navigateToBarCodeCameraView) {
+                    EmptyView()
+                }
 
 //                NavigationLink(destination: BarCodeCameraView()) {
 //                    Text("Add Item by Barcode")
@@ -165,7 +170,7 @@ struct AddItemView: View {
 //                    Text("Add Item by Text Recognition")
 //                        .padding(10)
 //                }
-//                
+//
 //                NavigationLink(destination: obj_page()) {
 //                    Text("Add Item by Object")
 //                        .padding(10)
