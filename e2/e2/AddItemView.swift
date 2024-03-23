@@ -1,6 +1,7 @@
 import SwiftUI
 import Vision
 import CoreML
+import Foundation
 
 struct AddItemView: View {
     var onAdd: (Item) -> Void
@@ -20,7 +21,6 @@ struct AddItemView: View {
     @State private var classifyObject = false
     @State private var classifyDate = false
     
-//    private var model: Resnet50?
     // initialize model
     private var model: Resnet50? = try? Resnet50(configuration: MLModelConfiguration())
 //    init() {
@@ -72,6 +72,7 @@ struct AddItemView: View {
                             performTextRecognition(image: image)
                         } else{
                             processImage(image: image)
+                            gptVision(image: image)
                         }
                     }
                 }) {
@@ -101,9 +102,10 @@ struct AddItemView: View {
                         if let image = imageCapture{
                             if classifyText{
                                 performTextRecognition(image: image)
-                            } else{
-                                processImage(image: image)
                             }
+//                            } else{
+//                                processImage(image: image)
+//                            }
                         }
                     }) {
                         // If you wish to take a photo from camera instead:
@@ -119,31 +121,7 @@ struct AddItemView: View {
                     ), displayedComponents: .date)
                     .datePickerStyle(.compact)
                     .padding()
-                    
-//                    DatePicker("Best by", selection: Binding(
-//                        get: {
-//                            dateFormatter.date(from: expirationDateInput) ?? Date()
-//                        },
-//                        set: {
-//                            expirationDateInput = dateFormatter.string(from: $0)
-//                        }
-//                    ), displayedComponents: .date)
-//                    .datePickerStyle(.compact)
-//                    .padding()
                 }
-
-//                if showingDatePicker {
-//                    DatePicker("Expiration Date", selection: Binding(
-//                        get: {
-//                            dateFormatter.date(from: expirationDateInput) ?? Date()
-//                        },
-//                        set: {
-//                            expirationDateInput = dateFormatter.string(from: $0)
-//                        }
-//                    ), displayedComponents: .date)
-//                    .datePickerStyle(.compact)
-//                    .padding()
-//                }
 
                 Button("Confirm", action: {
                     let newItem = createItem()
@@ -161,20 +139,6 @@ struct AddItemView: View {
                     EmptyView()
                 }
 
-//                NavigationLink(destination: BarCodeCameraView()) {
-//                    Text("Add Item by Barcode")
-//                        .padding(10)
-//                }
-                
-//                NavigationLink(destination: CameraView()) {
-//                    Text("Add Item by Text Recognition")
-//                        .padding(10)
-//                }
-//
-//                NavigationLink(destination: obj_page()) {
-//                    Text("Add Item by Object")
-//                        .padding(10)
-//                }
             }
             .navigationTitle("Add Item 🌭")
         }
@@ -205,6 +169,89 @@ struct AddItemView: View {
 
         return Item(name: itemName, expirationDate: Calendar.current.date(from: components))
     }
+    
+    
+    private func gptVision(image: UIImage?) {
+        print("GPT 4 Vision")
+        
+        guard let imageCapture = imageCapture else {
+            print("The photo is nil")
+            return
+        }
+        
+        guard let pngImage = imageCapture.pngData() else {
+            print("Cannot convert to png")
+            return
+        }
+        
+        let base64_image = pngImage.base64EncodedString()
+      
+        let prompt = "What is the item name in the picture, it should related to food or groceries. "
+
+        let requestData: [String: Any] = [
+            "model": "gpt-4-vision-preview",
+            "messages": [
+                [
+                    "role": "user",
+                    "content": [
+                        [
+                            "type": "text",
+                            "text": prompt
+                        ],
+                        [
+                            "type": "image_url",
+                            "image_url": [
+                                "url": "data:image/jpeg;base64,\(base64_image)",
+                                "detail": "low"
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            "max_tokens": 20
+        ]
+   
+        let apiKey = "apiKey"
+        let apiUrl = URL(string: "https://api.openai.com/v1/chat/completions")!
+        var request = URLRequest(url: apiUrl)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: requestData)
+        } catch {
+            print("Error serializing request data: \(error)")
+            return
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Error calling GPT API: \(error)")
+                return
+            }
+
+            guard let data = data else {
+                print("No data received from GPT-4 Vision API")
+                return
+            }
+            if let responseString = String(data: data, encoding: .utf8) {
+                  if let responseData = responseString.data(using: .utf8) {
+                      do {
+                          let json = try JSONSerialization.jsonObject(with: responseData, options: []) as? [String: Any]
+                          if let choices = json?["choices"] as? [[String: Any]], let firstChoice = choices.first, let message = firstChoice["message"] as? [String: Any], let content = message["content"] as? String {
+                              classificationResult = content
+                          }
+                      } catch {
+                          print("Error decoding response from GPT-3.5 API: \(error)")
+                      }
+                  }
+              } else {
+                  print("Unable to decode response from GPT-3.5 API")
+              }
+          }.resume()
+      }
+
 
     private func saveItemToUserDefaults(_ item: Item) {
         if var existingItems = UserDefaults.standard.array(forKey: "StoredItemsKey") as? [Data] {
