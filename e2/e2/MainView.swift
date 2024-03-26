@@ -7,8 +7,18 @@
 import SwiftUI
 import Foundation
 
+enum MealType: String, CaseIterable {
+    case breakfast = "Breakfast"
+    case lunch = "Lunch"
+    case dinner = "Dinner"
+    case somethingSimple = "Snack"
+}
+
 struct MainView: View {
     @State private var items: [Item] = []
+    @State private var selectedMealType: MealType?
+    @State private var recommendationContent: String?
+    
     var body: some View {
             TabView{
                 ContentView(items: $items)
@@ -21,7 +31,9 @@ struct MainView: View {
                     .tabItem {
                         Label("Add Item", systemImage: "cart.badge.plus")
                     }
-                Text("Recipe")
+                MealTypeSelectionView(selectedMealType: $selectedMealType, recommendationContent: $recommendationContent) { mealType in
+                    recommendRecipes(for: mealType)
+                }
                     .tabItem {
                         Label("Recipe", systemImage: "book.pages.fill")
                     }
@@ -39,6 +51,144 @@ struct MainView: View {
             items.append(newItem)
         }
     }
+    
+    private func recommendRecipes(for mealType: MealType) {
+        print("Recommendation requested for meal type: \(mealType.rawValue)")
+
+        guard let selectedMealType = selectedMealType else {
+            print("Selected meal type is nil")
+            return
+        }
+        let ingredients = items.map { $0.name }.joined(separator: ", ")
+        let prompt = "What can I have for \(selectedMealType.rawValue) with \(ingredients) in my storage? Just simply list out the name,ingrediants,and steps to make it,be as concise as possible,just show 1 recipe"
+        let requestData: [String: Any] = [
+            "model": "gpt-3.5-turbo",
+            "messages": [
+                [
+                    "role": "user",
+                    "content": prompt
+                ]
+            ],
+            "max_tokens": 300
+        ]
+        let apiKey = "api_key"
+        let apiUrl = URL(string: "https://api.openai.com/v1/chat/completions")!
+        var request = URLRequest(url: apiUrl)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: requestData)
+        } catch {
+            print("Error serializing request data: \(error)")
+            return
+        }
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Error calling GPT API: \(error)")
+                return
+            }
+            guard let data = data else {
+                print("No data received from GPT-3.5 API")
+                return
+            }
+            if let responseString = String(data: data, encoding: .utf8) {
+                  if let responseData = responseString.data(using: .utf8) {
+                      do {
+                          let json = try JSONSerialization.jsonObject(with: responseData, options: []) as? [String: Any]
+                          if let choices = json?["choices"] as? [[String: Any]], let firstChoice = choices.first, let message = firstChoice["message"] as? [String: Any], let content = message["content"] as? String {
+                              recommendationContent = content
+                          }
+                      } catch {
+                          print("Error decoding response from GPT-3.5 API: \(error)")
+                      }
+                  }
+              } else {
+                  print("Unable to decode response from GPT-3.5 API")
+              }
+          }.resume()
+      }
+}
+
+
+struct MealTypeSelectionView: View {
+    @Binding var selectedMealType: MealType?
+    @Binding var recommendationContent: String?
+    var onSelection: ((MealType) -> Void)
+    @State private var isLoading = false
+    @State private var decisionMade = false
+
+    var body: some View {
+        VStack(spacing: 20) {
+//            Text("Let's see what we have...")
+//                .font(.largeTitle)
+//                .fontWeight(.bold)
+//                .foregroundColor(.blue)
+            
+            if decisionMade {
+                ScrollView {
+                    if let recommendationContent = recommendationContent {
+                        Text(recommendationContent)
+                            .padding()
+                            .multilineTextAlignment(.leading)
+                        Button(action: {
+                            isLoading = false
+                            decisionMade = false
+                        }) {
+                            Text("Generate New Recipe")
+                                .fontWeight(.semibold)
+                                .foregroundColor(.white)
+                                .frame(width: 200, height: 30)
+                                .padding()
+                                .background(Color.blue)
+                        }
+                    } else if isLoading {
+                        Spacer()
+                        ProgressView("Loading Recipes...")
+                            .padding()
+                            .foregroundColor(.blue)
+                            .progressViewStyle(CircularProgressViewStyle(tint: .blue))
+                        Spacer()
+                    }
+                }
+                .padding()
+            }
+            else{
+                Spacer()
+                
+                Text("Time for...")
+                    .padding(.vertical, 40)
+                    .font(.title)
+                    .fontWeight(.semibold)
+                
+                VStack(spacing: 10) {
+                    ForEach(MealType.allCases, id: \.self) { type in
+                        Button(action: {
+                            selectedMealType = type
+                            isLoading = true
+                            recommendationContent = nil
+                            onSelection(type)
+                            decisionMade = true
+                        }) {
+                            Text(type.rawValue)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.white)
+                                .frame(width: 100, height: 30)
+                                .padding()
+                                .background(Color.blue)
+                        }
+                    }
+                }
+                .padding(.horizontal)
+                
+                Spacer()
+            }
+        }
+//        .padding()
+//        .navigationBarTitle("Meal Type", displayMode: .inline)
+    }
+    
 }
 
 
