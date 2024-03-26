@@ -20,6 +20,7 @@ struct AddItemView: View {
     @State private var classifyText = false
     @State private var classifyObject = false
     @State private var classifyDate = false
+    @State private var scannedProductName = ""
     
     // initialize model
     private var model: Resnet50? = try? Resnet50(configuration: MLModelConfiguration())
@@ -135,10 +136,9 @@ struct AddItemView: View {
                 })
                 .padding(30)
                 
-                NavigationLink(destination: BarCodeCameraView(), isActive: $navigateToBarCodeCameraView) {
+                NavigationLink(destination: BarCodeCameraView(scannedProductName: $itemName), isActive: $navigateToBarCodeCameraView) {
                     EmptyView()
                 }
-
             }
             .navigationTitle("Add Item 🌭")
         }
