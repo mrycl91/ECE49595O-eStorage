@@ -12,6 +12,7 @@ struct AddItemView: View {
     @State private var showingDatePicker = false
     @State private var navigateToBarCodeCameraView = false
     @State private var isShowingCameraView = false
+    @State private var confirmAdd = false
     
     // obj recog: below===================================================
     @State private var imageCapture : UIImage?
@@ -133,8 +134,26 @@ struct AddItemView: View {
 
                     // Dismiss the view
                     presentationMode.wrappedValue.dismiss()
+                    
+                    confirmAdd = true
                 })
                 .padding(30)
+                .alert("Item Added Successfully", isPresented: $confirmAdd){
+                    Button("OK"){
+                        itemName = ""
+                        expirationDateInput = ""
+                        showingDatePicker = false
+                        navigateToBarCodeCameraView = false
+                        isShowingCameraView = false
+                        confirmAdd = false
+                        showSheet = false
+                        classificationResult = ""
+                        classifyText = false
+                        classifyObject = false
+                        classifyDate = false
+                        scannedProductName = ""
+                    }
+                }
                 
                 NavigationLink(destination: BarCodeCameraView(scannedProductName: $itemName), isActive: $navigateToBarCodeCameraView) {
                     EmptyView()
