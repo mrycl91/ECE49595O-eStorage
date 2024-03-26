@@ -12,6 +12,7 @@ struct AddItemView: View {
     @State private var showingDatePicker = false
     @State private var navigateToBarCodeCameraView = false
     @State private var isShowingCameraView = false
+    @State private var confirmAdd = false
     
     // obj recog: below===================================================
     @State private var imageCapture : UIImage?
@@ -20,6 +21,7 @@ struct AddItemView: View {
     @State private var classifyText = false
     @State private var classifyObject = false
     @State private var classifyDate = false
+    @State private var scannedProductName = ""
     
     // initialize model
     private var model: Resnet50? = try? Resnet50(configuration: MLModelConfiguration())
@@ -132,13 +134,30 @@ struct AddItemView: View {
 
                     // Dismiss the view
                     presentationMode.wrappedValue.dismiss()
+                    
+                    confirmAdd = true
                 })
                 .padding(30)
+                .alert("Item Added Successfully", isPresented: $confirmAdd){
+                    Button("OK"){
+                        itemName = ""
+                        expirationDateInput = ""
+                        showingDatePicker = false
+                        navigateToBarCodeCameraView = false
+                        isShowingCameraView = false
+                        confirmAdd = false
+                        showSheet = false
+                        classificationResult = ""
+                        classifyText = false
+                        classifyObject = false
+                        classifyDate = false
+                        scannedProductName = ""
+                    }
+                }
                 
-                NavigationLink(destination: BarCodeCameraView(), isActive: $navigateToBarCodeCameraView) {
+                NavigationLink(destination: BarCodeCameraView(scannedProductName: $itemName), isActive: $navigateToBarCodeCameraView) {
                     EmptyView()
                 }
-
             }
             .navigationTitle("Add Item 🌭")
         }
