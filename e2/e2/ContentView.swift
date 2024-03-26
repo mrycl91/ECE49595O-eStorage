@@ -12,13 +12,8 @@ enum MealType: String, CaseIterable {
 }
 
 
-
-
-
-
 struct ContentView: View {
-    @State private var items: [Item] = []
-    @State private var showingAddItemView = false
+    @Binding var items: [Item]
     @State private var selectedItem: Item?
     @State private var showingDeleteAlert = false
     @State private var navigationTag: Int?
@@ -30,8 +25,16 @@ struct ContentView: View {
     private let itemsKey = "StoredItemsKey"
 
     var body: some View {
-            NavigationView {
-                VStack(spacing: 10) { // Add some spacing between views
+        ZStack{
+            if showingOptions
+            {
+                MealTypeSelectionView(selectedMealType: $selectedMealType, recommendationContent: $recommendationContent) { mealType in
+                    recommendRecipes(for: mealType)
+                }
+            }
+            else{
+                
+                VStack{
                     List {
                         ForEach(items.indices, id: \.self) { index in
                             NavigationLink(destination: ItemDetailView(item: items[index]), tag: index, selection: $navigationTag) {
@@ -56,73 +59,41 @@ struct ContentView: View {
                         .onDelete(perform: deleteItems)
                     }
                     .listStyle(PlainListStyle()) // Use PlainListStyle for a cleaner appearance
-
-                    // Buttons with adjusted styling
+                    
                     VStack(spacing: 20) { // Add spacing between buttons
                         Button(action: {
                             deleteAllExpiredItems()
                         }) {
-                            Text("Delete Expired Items➖")
+                            Text("Delete Expired Items")
                                 .padding()
                                 .foregroundColor(Color.white)
                                 .background(Color.red)
                                 .cornerRadius(8)
                         }
-
-                        Button(action: {
-                            showingAddItemView = true
-                        }) {
-                            Text("Add Item➕")
-                                .padding()
-                                .background(Color.blue)
-                                .foregroundColor(.white)
-                                .cornerRadius(8)
-                        }
-
+                        
                         Button(action: {
                             showingOptions = true
                         }) {
-                            Text("Recommend Recipe🥘")
+                            Text("Recommend Recipe")
                                 .padding()
                                 .background(Color.green)
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.white)
                                 .cornerRadius(8)
                         }
                     }
-                }
-                .navigationTitle("eStorage🍔")
-                .onAppear(perform: loadItems)
-                .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
-                    saveItems()
-                }
-                
-                .sheet(isPresented: $showingAddItemView) {
-                    AddItemView(onAdd: { newItem in
-                        addItem(newItem)
-                        showingAddItemView = false // Dismiss AddItemView
-                    })
-                }
-
-                
-                
-                
-                .sheet(isPresented: $showingOptions) {
-                    MealTypeSelectionView(selectedMealType: $selectedMealType, recommendationContent: $recommendationContent) { mealType in
-                        recommendRecipes(for: mealType)
+                    .alert(isPresented: $showingDeleteAlert) {
+                        Alert(
+                            title: Text("Delete Item"), message: Text("Are you sure you want to delete \(selectedItem?.name ?? "this item")?"),
+                            primaryButton: .destructive(Text("Delete")) {
+                                deleteSelectedItem()
+                            },
+                            secondaryButton: .cancel()
+                        )
                     }
-                }
-                .alert(isPresented: $showingDeleteAlert) {
-                    Alert(
-                        title: Text("Delete Item"),
-                        message: Text("Are you sure you want to delete \(selectedItem?.name ?? "this item")?"),
-                        primaryButton: .destructive(Text("Delete")) {
-                            deleteSelectedItem()
-                        },
-                        secondaryButton: .cancel()
-                    )
                 }
             }
         }
+    }
 
     private func recommendRecipes(for mealType: MealType) {
         print("Recommendation requested for meal type: \(mealType.rawValue)")
@@ -131,12 +102,8 @@ struct ContentView: View {
             print("Selected meal type is nil")
             return
         }
-
-        // Prepare the prompt for GPT-3 based on selected meal type and available ingredients
         let ingredients = items.map { $0.name }.joined(separator: ", ")
         let prompt = "What can I have for \(selectedMealType.rawValue) with \(ingredients) in my storage? Just simply list out the name,ingrediants,and steps to make it,be as concise as possible,just show 1 recipe"
-
-        // Construct the request data including the required 'messages' property
         let requestData: [String: Any] = [
             "model": "gpt-3.5-turbo",
             "messages": [
@@ -147,8 +114,6 @@ struct ContentView: View {
             ],
             "max_tokens": 300
         ]
-
-        // Call GPT-3 API
         let apiKey = "apikey"
         let apiUrl = URL(string: "https://api.openai.com/v1/chat/completions")!
         var request = URLRequest(url: apiUrl)
@@ -162,28 +127,22 @@ struct ContentView: View {
             print("Error serializing request data: \(error)")
             return
         }
-
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
                 print("Error calling GPT API: \(error)")
                 return
             }
-
             guard let data = data else {
                 print("No data received from GPT-3.5 API")
                 return
             }
-         
             if let responseString = String(data: data, encoding: .utf8) {
                   if let responseData = responseString.data(using: .utf8) {
                       do {
-                          
                           let json = try JSONSerialization.jsonObject(with: responseData, options: []) as? [String: Any]
                           if let choices = json?["choices"] as? [[String: Any]], let firstChoice = choices.first, let message = firstChoice["message"] as? [String: Any], let content = message["content"] as? String {
                               recommendationContent = content
-        
                           }
-                          
                       } catch {
                           print("Error decoding response from GPT-3.5 API: \(error)")
                       }
@@ -195,13 +154,13 @@ struct ContentView: View {
       }
 
 
-    private func addItem(_ newItem: Item) {
-        if let index = items.firstIndex(where: { $0.expirationDate ?? Date() > newItem.expirationDate ?? Date() }) {
-            items.insert(newItem, at: index)
-        } else {
-            items.append(newItem)
-        }
-    }
+//    private func addItem(_ newItem: Item) {
+//        if let index = items.firstIndex(where: { $0.expirationDate ?? Date() > newItem.expirationDate ?? Date() }) {
+//            items.insert(newItem, at: index)
+//        } else {
+//            items.append(newItem)
+//        }
+//    }
 
     private func deleteItems(at offsets: IndexSet) {
         selectedItem = items[offsets.first ?? 0]
@@ -239,14 +198,12 @@ struct ContentView: View {
             }
             return currentDate > expirationDate
         }
-
         // Display an alert if there are no expired items to delete
         guard !expiredItemsIndices.isEmpty else {
             showingDeleteAlert = true
             selectedItem = nil
             return
         }
-
         // Delete expired items
         for index in expiredItemsIndices.reversed() {
             items.remove(at: index)
@@ -267,13 +224,6 @@ struct ContentView: View {
         }
     }
 }
-
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
-    }
-}
-
 
 
 struct MealTypeSelectionView: View {
@@ -331,5 +281,22 @@ struct MealTypeSelectionView: View {
         }
         .padding()
         .navigationBarTitle("Meal Type", displayMode: .inline)
+    }
+}
+
+
+//struct ContentView_Previews: PreviewProvider {
+//    let items: [Item] = []
+//    static var previews: some View {
+//        ContentView(items: .constent(items))
+//    }
+//}
+
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        let items: [Item] = [] // Provide sample data
+        
+        // Use a dummy Binding to pass the items array to the preview
+        ContentView(items: .constant(items))
     }
 }
