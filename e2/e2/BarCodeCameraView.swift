@@ -1,10 +1,3 @@
-//
-//  BarCodeCameraView.swift
-//  e2
-//
-//  Created by YuChen on 2024/2/11.
-//
-
 import SwiftUI
 import AVFoundation
 import Combine
@@ -17,6 +10,13 @@ class MetadataManager: NSObject, AVCaptureMetadataOutputObjectsDelegate, Observa
     func updateProductName(newValue: String) {
         self.productName = newValue
     }
+    
+    func confirmButtonPressed() {
+        NotificationCenter.default.post(name: NSNotification.Name("ProductConfirmed"), object: self.productName)
+    }
+    func resetCameraSession() {
+           session.startRunning() // Start the camera session again
+       }
     
     private var backCamera: AVCaptureDeviceInput? {
         let camera = AVCaptureDevice.DiscoverySession(
@@ -38,7 +38,6 @@ class MetadataManager: NSObject, AVCaptureMetadataOutputObjectsDelegate, Observa
             session.addInput(backCamera)
             session.addOutput(metaOutput)
             
-//            metaOutput.metadataObjectTypes = metaOutput.availableMetadataObjectTypes
             metaOutput.metadataObjectTypes = [AVMetadataObject.ObjectType.ean13, AVMetadataObject.ObjectType.upce]
             metaOutput.setMetadataObjectsDelegate(self, queue: .global())
         }
@@ -59,7 +58,6 @@ class MetadataManager: NSObject, AVCaptureMetadataOutputObjectsDelegate, Observa
                 if let data = data as? AVMetadataMachineReadableCodeObject,
                    let value = data.stringValue {
                     print("Barcode Info: \(value)")
-                    // Example function call - replace with your actual function to fetch the product name
                     self.fetchProductByUPC(upc: value)
                 }
             }
@@ -75,7 +73,7 @@ class MetadataManager: NSObject, AVCaptureMetadataOutputObjectsDelegate, Observa
         }
         
         var request = URLRequest(url: url)
-        request.httpMethod = "GET" // or "POST" based on the API documentation
+        request.httpMethod = "GET"
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             let task = URLSession.shared.dataTask(with: request) { data, response, error in
@@ -91,26 +89,24 @@ class MetadataManager: NSObject, AVCaptureMetadataOutputObjectsDelegate, Observa
                     return
                 }
                 
-                // Handle the response data, parse JSON, etc.
                 do {
                     let productInfo = try JSONDecoder().decode(ProductInfo.self, from: data)
-                    // Use `productInfo` as needed in your app
                     DispatchQueue.main.async {
                         self.productName = productInfo.product.name
-                    } // Changed HERE
+                    }
                     print(self.productName)
                 } catch {
                     print("JSON decoding error: \(error)")
                     DispatchQueue.main.async {
                         self.productName = "Product Not Found"
-                    } // Changed HERE
+                    }
                 }
             }
             task.resume()
         }
     }
 }
-    
+
 struct PreviewView: UIViewRepresentable {
     var previewLayer: CALayer
     var proxy: GeometryProxy
@@ -135,8 +131,14 @@ struct PreviewView: UIViewRepresentable {
 
 struct BarCodeCameraView: View {
     @ObservedObject private var avManager = MetadataManager.current
+    @Binding var scannedProductName: String 
     private let avman = MetadataManager.current.getPreviewLayer()
-    
+    @Environment(\.presentationMode) var presentationMode // Add this line
+
+    init(scannedProductName: Binding<String>) {
+            self._scannedProductName = scannedProductName // Initialize the binding
+        }
+
     var body: some View {
         VStack {
             Text(avManager.productName) // Display the dynamically updated product name
@@ -158,22 +160,41 @@ struct BarCodeCameraView: View {
                 }
             }
             .frame(width: 380, height:300)
-            //BarCodeResultView()
+            
+            // Add the Confirm button
+            Button("Confirm") {
+                avManager.confirmButtonPressed()
+                scannedProductName = avManager.productName
+                presentationMode.wrappedValue.dismiss()
+            }
+            .padding()
+            .background(Color.blue)
+            .foregroundColor(.white)
+            .cornerRadius(8)
+            Button("Retake") {
+                avManager.resetCameraSession() // Reset the camera session
+
+                avManager.updateProductName(newValue: "Scanning...")
+                        }
+            .padding()
+            .background(Color.blue)
+            .foregroundColor(.white)
+            .cornerRadius(8)
         }
         .onAppear{
             avManager.updateProductName(newValue: "Scanning...")
         }
+       
     }
 }
 
 struct BarCodeCameraView_Previews: PreviewProvider {
     static var previews: some View {
-        BarCodeCameraView()
+        BarCodeCameraView(scannedProductName: .constant(""))
     }
 }
 
 struct ProductInfo: Codable {
-    // Define properties based on the JSON structure returned by Go-UPC
     let code: String
     let codeType: String
     let product: Product
