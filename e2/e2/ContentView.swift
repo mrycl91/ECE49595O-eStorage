@@ -4,12 +4,15 @@ import SwiftUI
 import Combine
 
 
-enum MealType: String {
+enum MealType: String, CaseIterable {
     case breakfast = "Breakfast"
     case lunch = "Lunch"
     case dinner = "Dinner"
     case somethingSimple = "Something Simple"
 }
+
+
+
 
 
 
@@ -23,62 +26,91 @@ struct ContentView: View {
     @State private var selectedMealType: MealType?
     @State private var recommendationContent: String?
 
+    // Key for UserDefaults
     private let itemsKey = "StoredItemsKey"
 
     var body: some View {
-        NavigationView {
-            VStack {
-                List {
-                    ForEach(items.indices, id: \.self) { index in
-                        NavigationLink(destination: ItemDetailView(item: items[index]), tag: index, selection: $navigationTag) {
-                            HStack {
-                                VStack(alignment: .leading) {
-                                    Text(" \(items[index].name)")
-                                        .foregroundColor(isItemExpired(items[index].expirationDate) ? .red : .primary)
-                                    if let expirationDate = items[index].expirationDate {
-                                        Text("Expiration Date: \(formattedDate(expirationDate))")
-                                            .foregroundColor(isItemExpired(expirationDate) ? .red : .secondary)
+            NavigationView {
+                VStack(spacing: 10) { // Add some spacing between views
+                    List {
+                        ForEach(items.indices, id: \.self) { index in
+                            NavigationLink(destination: ItemDetailView(item: items[index]), tag: index, selection: $navigationTag) {
+                                HStack {
+                                    VStack(alignment: .leading) {
+                                        Text(" \(items[index].name)")
+                                            .foregroundColor(isItemExpired(items[index].expirationDate) ? .red : .primary)
+                                        if let expirationDate = items[index].expirationDate {
+                                            Text("Expiration Date: \(formattedDate(expirationDate))")
+                                                .foregroundColor(isItemExpired(expirationDate) ? .red : .secondary)
+                                        }
                                     }
+                                    Spacer()
                                 }
-                                Spacer()
+                            }
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                selectedItem = items[index]
+                                navigationTag = index
                             }
                         }
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            selectedItem = items[index]
-                            navigationTag = index
+                        .onDelete(perform: deleteItems)
+                    }
+                    .listStyle(PlainListStyle()) // Use PlainListStyle for a cleaner appearance
+
+                    // Buttons with adjusted styling
+                    VStack(spacing: 20) { // Add spacing between buttons
+                        Button(action: {
+                            deleteAllExpiredItems()
+                        }) {
+                            Text("Delete Expired Items➖")
+                                .padding()
+                                .foregroundColor(Color.white)
+                                .background(Color.red)
+                                .cornerRadius(8)
+                        }
+
+                        Button(action: {
+                            showingAddItemView = true
+                        }) {
+                            Text("Add Item➕")
+                                .padding()
+                                .background(Color.blue)
+                                .foregroundColor(.white)
+                                .cornerRadius(8)
+                        }
+
+                        Button(action: {
+                            showingOptions = true
+                        }) {
+                            Text("Recommend Recipe🥘")
+                                .padding()
+                                .background(Color.green)
+                                .foregroundColor(.white)
+                                .cornerRadius(8)
                         }
                     }
-                    .onDelete(perform: deleteItems)
+                }
+                .navigationTitle("eStorage🍔")
+                .onAppear(perform: loadItems)
+                .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
+                    saveItems()
+                }
+                
+                .sheet(isPresented: $showingAddItemView) {
+                    AddItemView(onAdd: { newItem in
+                        addItem(newItem)
+                        showingAddItemView = false // Dismiss AddItemView
+                    })
                 }
 
-                // New Button to delete all expired items
-                Button("Delete Expired Items➖", action: {
-                    deleteAllExpiredItems()
-                })
-                .foregroundColor(.red)
-                .padding()
-
-                NavigationLink(destination: AddItemView(onAdd: { newItem in
-                    addItem(newItem)
-                    showingAddItemView = false // Dismiss AddItemView
-                }), isActive: $showingAddItemView) {
-                    EmptyView()
-                }
-
-                Button("Add Item➕", action: {
-                    showingAddItemView = true
-                })
-                .padding()
-                Button("Recommend Recipe🥘") {
-                    showingOptions = true
-                }
-                .padding()
+                
+                
+                
                 .sheet(isPresented: $showingOptions) {
-                                    MealTypeSelectionView(selectedMealType: $selectedMealType, recommendationContent: $recommendationContent) { mealType in
-                                        recommendRecipes(for: mealType)
-                                    }
-                                }
+                    MealTypeSelectionView(selectedMealType: $selectedMealType, recommendationContent: $recommendationContent) { mealType in
+                        recommendRecipes(for: mealType)
+                    }
+                }
                 .alert(isPresented: $showingDeleteAlert) {
                     Alert(
                         title: Text("Delete Item"),
@@ -90,13 +122,7 @@ struct ContentView: View {
                     )
                 }
             }
-            .navigationTitle("eStorage🍔")
-            .onAppear(perform: loadItems)
-            .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
-                saveItems()
-            }
         }
-    }
 
     private func recommendRecipes(for mealType: MealType) {
         print("Recommendation requested for meal type: \(mealType.rawValue)")
@@ -106,11 +132,11 @@ struct ContentView: View {
             return
         }
 
-      
+        // Prepare the prompt for GPT-3 based on selected meal type and available ingredients
         let ingredients = items.map { $0.name }.joined(separator: ", ")
         let prompt = "What can I have for \(selectedMealType.rawValue) with \(ingredients) in my storage? Just simply list out the name,ingrediants,and steps to make it,be as concise as possible,just show 1 recipe"
 
-     
+        // Construct the request data including the required 'messages' property
         let requestData: [String: Any] = [
             "model": "gpt-3.5-turbo",
             "messages": [
@@ -119,11 +145,11 @@ struct ContentView: View {
                     "content": prompt
                 ]
             ],
-            "max_tokens": 150
+            "max_tokens": 300
         ]
 
-   
-        let apiKey = "API_KEY"
+        // Call GPT-3 API
+        let apiKey = "apikey"
         let apiUrl = URL(string: "https://api.openai.com/v1/chat/completions")!
         var request = URLRequest(url: apiUrl)
         request.httpMethod = "POST"
@@ -147,13 +173,17 @@ struct ContentView: View {
                 print("No data received from GPT-3.5 API")
                 return
             }
+         
             if let responseString = String(data: data, encoding: .utf8) {
                   if let responseData = responseString.data(using: .utf8) {
                       do {
+                          
                           let json = try JSONSerialization.jsonObject(with: responseData, options: []) as? [String: Any]
                           if let choices = json?["choices"] as? [[String: Any]], let firstChoice = choices.first, let message = firstChoice["message"] as? [String: Any], let content = message["content"] as? String {
                               recommendationContent = content
+        
                           }
+                          
                       } catch {
                           print("Error decoding response from GPT-3.5 API: \(error)")
                       }
@@ -250,15 +280,14 @@ struct MealTypeSelectionView: View {
     @Binding var selectedMealType: MealType?
     @Binding var recommendationContent: String?
     var onSelection: ((MealType) -> Void)
-    @State private var isLoading = false // Added state variable to track loading state
+    @State private var isLoading = false
 
     var body: some View {
-        VStack {
-            Text("Recipe recommendation--by GPT 3.5🤖")
-                .font(.title)
-                .padding()
-
-            Spacer()
+        VStack(spacing: 20) {
+            Text("Recipe Recommendation🌮")
+                .font(.largeTitle)
+                .fontWeight(.bold)
+                .foregroundColor(.blue)
 
             ScrollView {
                 if let recommendationContent = recommendationContent {
@@ -266,53 +295,41 @@ struct MealTypeSelectionView: View {
                         .padding()
                         .multilineTextAlignment(.leading)
                 } else if isLoading {
-                    Text("Recipe Loading...")
+                    ProgressView("Loading Recipes...")
                         .padding()
-                        .foregroundColor(.gray)
-                        .multilineTextAlignment(.leading)
+                        .foregroundColor(.blue)
+                        .progressViewStyle(CircularProgressViewStyle(tint: .blue))
                 }
             }
-            
-            VStack{
-                Text("Select meal type🥐")
-                HStack {
-                    Button("Breakfast") {
-                        selectedMealType = .breakfast
-                        isLoading = true
-                        recommendationContent = nil
-                        onSelection(.breakfast)
-                    }
-                    .padding()
+            .padding()
 
-                    Button("Lunch") {
-                        selectedMealType = .lunch
-                        isLoading = true
-                        recommendationContent = nil
-                        onSelection(.lunch)
-                    }
-                    .padding()
+            Text("Select Meal Type🥐")
+                .font(.title)
+                .fontWeight(.semibold)
 
-                    Button("Dinner") {
-                        selectedMealType = .dinner
+            VStack(spacing: 10) {
+                ForEach(MealType.allCases, id: \.self) { type in
+                    Button(action: {
+                        selectedMealType = type
                         isLoading = true
                         recommendationContent = nil
-                        onSelection(.dinner)
+                        onSelection(type)
+                    }) {
+                        Text(type.rawValue)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.blue)
+                            .cornerRadius(10)
                     }
-                    .padding()
-
-                    Button("Something Simple") {
-                        selectedMealType = .somethingSimple
-                        isLoading = true
-                        recommendationContent = nil
-                        onSelection(.somethingSimple)
-                    }
-                    .padding()
                 }
             }
-            
+            .padding(.horizontal)
 
             Spacer()
         }
-        .navigationBarTitle("Meal Type")
+        .padding()
+        .navigationBarTitle("Meal Type", displayMode: .inline)
     }
 }
