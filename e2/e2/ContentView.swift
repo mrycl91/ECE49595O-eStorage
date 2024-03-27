@@ -8,6 +8,7 @@ struct ContentView: View {
     @Binding var items: [Item]
     @State private var selectedItem: Item?
     @State private var showingDeleteAlert = false
+    @State private var showingALLDeleteAlert = false
     @State private var navigationTag: Int?
 
     // Key for UserDefaults
@@ -19,6 +20,7 @@ struct ContentView: View {
                 Text("Grocery Lists")
                     .font(.system(size: 26, weight: .bold))
                     .position(x: 120, y: 60)
+                    .foregroundColor(Color(hex: 0x535657))
                 Path { path in
                     path.move(to: CGPoint(x:proxy.size.width, y:0))
                     path.addArc(
@@ -30,26 +32,25 @@ struct ContentView: View {
                     )
                     path.closeSubpath()
                 }
-                    .fill(Color.gray)
+                    .fill(Color(hex: 0x535657))
                 
                 Button(action: {
-                    showingDeleteAlert = true
+                    showingALLDeleteAlert = true
                 }, label: {
                     Text("Delete\n       All")
-                        .foregroundColor(Color.white)
+                        .foregroundColor(Color(hex: 0xf4faff))
                 })
                     .frame(width: 100, height:80)
-//                    .background(Color.blue)
                     .position(x: proxy.size.width - 55, y: 45)
-                    .alert(isPresented: $showingDeleteAlert) {
+                    .alert(isPresented: $showingALLDeleteAlert) {
                         Alert(
                             title: Text("Delete Expired Item"), message: Text("Confirm deletion of all expired items?"),
                             primaryButton: .destructive(Text("Delete")) {
                                 deleteAllExpiredItems()
-                                showingDeleteAlert = false
+                                showingALLDeleteAlert = false
                             },
                             secondaryButton: .cancel(){
-                                showingDeleteAlert = false
+                                showingALLDeleteAlert = false
                             }
                         )
                     }
@@ -79,6 +80,7 @@ struct ContentView: View {
                         }
                         .onDelete(perform: deleteItems)
                     }
+                    .listRowBackground(Color(hex: 0xdee7e7))
                     .listStyle(PlainListStyle()) // Use PlainListStyle for a cleaner appearance
                     .alert(isPresented: $showingDeleteAlert) {
                         Alert(
@@ -92,6 +94,7 @@ struct ContentView: View {
                 }
 //            }
         }
+        .background(Color(hex: 0xdee7e7))
     }
 
     private func deleteItems(at offsets: IndexSet) {
@@ -100,6 +103,7 @@ struct ContentView: View {
     }
 
     private func deleteSelectedItem() {
+        print("delete selected item")
         if let selectedItem = selectedItem,
            let index = items.firstIndex(where: { $0.id == selectedItem.id }) {
             items.remove(at: index)
@@ -139,20 +143,6 @@ struct ContentView: View {
         // Delete expired items
         for index in expiredItemsIndices.reversed() {
             items.remove(at: index)
-        }
-    }
-
-    private func loadItems() {
-        if let data = UserDefaults.standard.data(forKey: itemsKey) {
-            if let decodedItems = try? JSONDecoder().decode([Item].self, from: data) {
-                items = decodedItems
-            }
-        }
-    }
-
-    private func saveItems() {
-        if let encodedData = try? JSONEncoder().encode(items) {
-            UserDefaults.standard.set(encodedData, forKey: itemsKey)
         }
     }
 }
