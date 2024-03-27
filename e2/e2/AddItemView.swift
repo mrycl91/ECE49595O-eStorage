@@ -22,18 +22,7 @@ struct AddItemView: View {
     @State private var classifyObject = false
     @State private var classifyDate = false
     @State private var scannedProductName = ""
-    
-    // initialize model
     private var model: Resnet50? = try? Resnet50(configuration: MLModelConfiguration())
-//    init() {
-//        do {
-//            model = try Resnet50(configuration: MLModelConfiguration())
-//        } catch {
-//            print("Unable to initialize model: \(error)")
-//        }
-//    }
-    // obj recog: above===================================================
-
 
     var body: some View {
         NavigationView {
@@ -67,6 +56,7 @@ struct AddItemView: View {
                     .buttonStyle(.bordered)
                     .buttonBorderShape(.capsule)
                 }
+                
                 .sheet(isPresented: $showSheet, onDismiss: {
                     showSheet = false
                     if let image = imageCapture{
@@ -160,6 +150,7 @@ struct AddItemView: View {
                 }
             }
             .navigationTitle("Add Item 🌭")
+//            .background(Color(hex: 0xdee7e7))
         }
     }
 
