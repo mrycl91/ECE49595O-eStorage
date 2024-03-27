@@ -18,6 +18,7 @@ struct MainView: View {
     @State private var items: [Item] = []
     @State private var selectedMealType: MealType?
     @State private var recommendationContent: String?
+    private let itemsKey = "StoredItemsKey"
     
     var body: some View {
             TabView{
@@ -25,6 +26,7 @@ struct MainView: View {
                     .tabItem {
                         Label("List", systemImage: "list.dash")
                     }
+                    .onAppear(perform: loadItems)
                 AddItemView(onAdd: { newItem in
                     addItem(newItem)
                     })
@@ -42,6 +44,23 @@ struct MainView: View {
                         Label("Settings", systemImage: "gearshape")
                     }
             }
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)){ _ in
+                saveItems()
+            }
+    }
+    
+    private func loadItems() {
+        if let data = UserDefaults.standard.data(forKey: itemsKey) {
+            if let decodedItems = try? JSONDecoder().decode([Item].self, from: data) {
+                items = decodedItems
+            }
+        }
+    }
+    
+    private func saveItems() {
+        if let encodedData = try? JSONEncoder().encode(items) {
+            UserDefaults.standard.set(encodedData, forKey: itemsKey)
+        }
     }
     
     private func addItem(_ newItem: Item) {
@@ -185,17 +204,26 @@ struct MealTypeSelectionView: View {
                 Spacer()
             }
         }
-//        .padding()
-//        .navigationBarTitle("Meal Type", displayMode: .inline)
+//        .background(Color(hex: 0xdee7e7))
     }
-    
 }
 
 
 struct MainView_Previews: PreviewProvider {
     static var previews: some View {
         MainView()
-//        MainView()
-//            .environmentObject(ContentView())
+    }
+}
+
+
+extension Color {
+    init(hex: Int, opacity: Double = 1) {
+        self.init(
+            .sRGB,
+            red: Double((hex >> 16) & 0xff) / 255,
+            green: Double((hex >> 08) & 0xff) / 255,
+            blue: Double((hex >> 00) & 0xff) / 255,
+            opacity: opacity
+        )
     }
 }
