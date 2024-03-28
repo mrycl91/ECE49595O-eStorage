@@ -10,7 +10,8 @@ struct ContentView: View {
     @State private var showingDeleteAlert = false
     @State private var showingALLDeleteAlert = false
     @State private var navigationTag: Int?
-    @State private var detailPage: Item?
+    @State private var detailPage = false
+    @State private var emptyItem = Item(name: "", expirationDate: nil)
 
     // Key for UserDefaults
     private let itemsKey = "StoredItemsKey"
@@ -80,10 +81,18 @@ struct ContentView: View {
                                 .contentShape(Rectangle())
                                 .onTapGesture {
                                     selectedItem = items[index]
+                                    detailPage = true
                                 }
                                 .sheet(item: $selectedItem){ selectedItem in
-                                    ItemDetailView(item: selectedItem)
+                                    if selectedItem != emptyItem{
+                                        ItemDetailView(item: selectedItem)
+                                    }
                                 }
+//                                .fullScreenCover(isPresented: $detailPage){
+//                                    if let selectedItem = selectedItem{
+//                                        ItemDetailView(item: selectedItem)
+//                                    }
+//                                }
                         }
                             .onDelete(perform: deleteItems)
                             .listRowBackground(Color(hex: 0xdee7e7))
@@ -119,7 +128,7 @@ struct ContentView: View {
            let index = items.firstIndex(where: { $0.id == selectedItem.id }) {
             items.remove(at: index)
         }
-        selectedItem = nil
+        selectedItem = emptyItem //nil
     }
 
     private func formattedDate(_ date: Date) -> String {
@@ -148,7 +157,7 @@ struct ContentView: View {
         // Display an alert if there are no expired items to delete
         guard !expiredItemsIndices.isEmpty else {
             showingDeleteAlert = true
-            selectedItem = nil
+            selectedItem = emptyItem // nil
             return
         }
         // Delete expired items

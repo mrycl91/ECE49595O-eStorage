@@ -6,3 +6,17 @@
 //
 
 import Foundation
+import SwiftUI
+
+struct SettingView: View {
+    
+    var body: some View {
+        VStack{
+            Text("Setting View")
+                .frame(maxWidth:.infinity)
+            
+        }
+        .background(Color(hex: 0x89a9a9))
+    }
+    
+}

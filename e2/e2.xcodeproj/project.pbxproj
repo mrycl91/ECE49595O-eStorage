@@ -22,6 +22,7 @@
 		E05D6D1C2B93CFB000DA6C57 /* obj_cam.swift in Sources */ = {isa = PBXBuildFile; fileRef = E05D6D1B2B93CFB000DA6C57 /* obj_cam.swift */; };
 		E05D6D1E2B93D07000DA6C57 /* obj_page.swift in Sources */ = {isa = PBXBuildFile; fileRef = E05D6D1D2B93D06F00DA6C57 /* obj_page.swift */; };
 		E079A71E2BB3196F000BDCCA /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E079A71D2BB3196F000BDCCA /* MainView.swift */; };
+		E0DA94372BB4F58D0053F707 /* SettingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0DA94362BB4F58D0053F707 /* SettingView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -42,6 +43,7 @@
 		E05D6D1B2B93CFB000DA6C57 /* obj_cam.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = obj_cam.swift; sourceTree = "<group>"; };
 		E05D6D1D2B93D06F00DA6C57 /* obj_page.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = obj_page.swift; sourceTree = "<group>"; };
 		E079A71D2BB3196F000BDCCA /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
+		E0DA94362BB4F58D0053F707 /* SettingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -81,6 +83,7 @@
 				97C7F8E12B66F44900722549 /* ContentView.swift */,
 				E05D6D1B2B93CFB000DA6C57 /* obj_cam.swift */,
 				E079A71D2BB3196F000BDCCA /* MainView.swift */,
+				E0DA94362BB4F58D0053F707 /* SettingView.swift */,
 				E05D6D1D2B93D06F00DA6C57 /* obj_page.swift */,
 				97C7F8E32B66F44900722549 /* Item.swift */,
 				97C7F8F12B67028100722549 /* ItemDetailView.swift */,
@@ -175,6 +178,7 @@
 				E05D6D1E2B93D07000DA6C57 /* obj_page.swift in Sources */,
 				E079A71E2BB3196F000BDCCA /* MainView.swift in Sources */,
 				97C7F8F22B67028100722549 /* ItemDetailView.swift in Sources */,
+				E0DA94372BB4F58D0053F707 /* SettingView.swift in Sources */,
 				97AACC952B6ED6320003825C /* SceneDelegate.swift in Sources */,
 				97C7F8E22B66F44900722549 /* ContentView.swift in Sources */,
 				4BC85F672B89681D00853959 /* CameraView.swift in Sources */,
@@ -333,7 +337,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "senior-design.estorage";
+				PRODUCT_BUNDLE_IDENTIFIER = "senior-design.estorage.ccc";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -364,7 +368,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "senior-design.estorage";
+				PRODUCT_BUNDLE_IDENTIFIER = "senior-design.estorage.ccc";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
