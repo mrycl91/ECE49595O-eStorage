@@ -13,24 +13,33 @@ struct NotificationSettingView: View {
     }
 
     var body: some View {
-        Form {
-            Section(header: Text("Notification Settings")) {
+        VStack{
+            Section(header: Text("Notification Settings\n").font(.title2)) {
                 Stepper(value: $daysPrior, in: 0...30, step: 1) {
-                    Text("Days Prior to Expiration: \(daysPrior)")
+                    Text("Notify \(daysPrior) Days Prior to Expiration")
                 }
+                
+                Text("")
 
                 if let notificationTime = item.notificationTime {
-                    DatePicker("Select Time", selection: $selectedNotificationDate, displayedComponents: .hourAndMinute)
+                    DatePicker("Notification Sending Time", selection: $selectedNotificationDate, displayedComponents: .hourAndMinute)
                         .onAppear {
                             self.selectedNotificationDate = notificationTime
                         }
                 }
             }
+                .frame(maxWidth: 350)
+            
+            Text("\n")
+                .frame(maxWidth:.infinity)
 
-            Button("Save Notification Settings") {
+            Button("Save") {
                 saveNotificationSettings()
             }
+            .foregroundColor(.white)
         }
+        .frame(maxHeight: .infinity*0.4)
+        .background(Color(hex: 0x89a9a9))
     }
 
     private func saveNotificationSettings() {
