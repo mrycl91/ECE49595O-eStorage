@@ -5,45 +5,56 @@ import UserNotifications
 struct ItemDetailView: View {
     @ObservedObject var item: Item
     @State private var showingNotificationSetting = false
+    @State private var notifyEnable = false
 
     var body: some View {
         VStack {
-            Text("Name: \(item.name)").font(.title)
-            Text("Expiration Date: \(formattedDate(item.expirationDate))")
-            Text("Notification Time: \(formattedDateTime(item.notificationTime))")
-
-            // Toggle button for notification on/off
-            Button(action: {
-                // Toggle the notification state
-                item.isNotificationEnabled.toggle()
-
-                if item.isNotificationEnabled {
-                    // If notifications are enabled, schedule the notification
-                    scheduleNotification(for: item)
-                } else {
-                    // If notifications are disabled, remove the existing notification
-                    removeScheduledNotification(for: item)
-                }
-            }) {
-                Text("Enable Notification: \(item.isNotificationEnabled.description)")
+            Spacer()
+            Text("\(item.name)\n")
+                .frame(maxWidth: .infinity)
+                .font(.title)
+                .foregroundColor(Color(hex: 0xfafaff))
+            Text("Best by \(formattedDate(item.expirationDate))\n")
+                .foregroundColor(Color(hex: 0xdee7e7))
+            Text("Notify on \(formattedDateTime(item.notificationTime))")
+                .foregroundColor(Color(hex: 0xdee7e7))
+            
+            Spacer()
+            
+            Toggle( isOn: $item.isNotificationEnabled){
+                Label("Notification", systemImage: "bell")
             }
-            .padding()
+            .frame(width: 200)
+                .onChange(of: item.isNotificationEnabled) {
+                    if item.isNotificationEnabled {
+                        // If notifications are enabled, schedule the notification
+                        scheduleNotification(for: item)
+                    } else {
+                        // If notifications are disabled, remove the existing notification
+                        removeScheduledNotification(for: item)
+                    }
+                }
 
             // Navigation button to NotificationSettingView
             Button(action: {
                 showingNotificationSetting = true
             }) {
-                Text("Notification Setting")
-                    .foregroundColor(.blue)
+                Label("Go to Notification Setting", systemImage: "gear")
+//                Text("Notification Setting")
+                    .foregroundColor(Color(hex: 0xfafaff))
             }
-            .padding()
-
-            NavigationLink(destination: NotificationSettingView(item: item), isActive: $showingNotificationSetting) {
-                EmptyView()
-            }
+                .padding()
+                .sheet(isPresented: $showingNotificationSetting){
+//                    Text("Hi")
+                    NotificationSettingView(item: item)
+                        .presentationDetents([.fraction(0.4)])
+                }
+            
+            Spacer()
         }
-        .padding()
-        .navigationBarTitle("Item Detail")
+            .padding()
+            .background(Color(hex: 0x4f646f))
+    
     }
 
     private func formattedDate(_ date: Date?) -> String {
