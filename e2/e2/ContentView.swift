@@ -81,7 +81,7 @@ struct ContentView: View {
                                 .contentShape(Rectangle())
                                 .onTapGesture {
                                     selectedItem = items[index]
-                                    detailPage = true
+//                                    detailPage = true
                                 }
                                 .sheet(item: $selectedItem){ selectedItem in
                                     if selectedItem != emptyItem{
