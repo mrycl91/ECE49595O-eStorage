@@ -39,7 +39,7 @@ struct MainView: View {
                     .tabItem {
                         Label("Recipe", systemImage: "book.pages.fill")
                     }
-                Text("Setting")
+                SettingView()
                     .tabItem {
                         Label("Settings", systemImage: "gearshape")
                     }
@@ -139,11 +139,9 @@ struct MealTypeSelectionView: View {
     @State private var decisionMade = false
 
     var body: some View {
-        VStack(spacing: 20) {
-//            Text("Let's see what we have...")
-//                .font(.largeTitle)
-//                .fontWeight(.bold)
-//                .foregroundColor(.blue)
+        VStack() {
+            Text("")
+                .frame(maxWidth: .infinity)
             
             if decisionMade {
                 ScrollView {
@@ -157,17 +155,24 @@ struct MealTypeSelectionView: View {
                         }) {
                             Text("Generate New Recipe")
                                 .fontWeight(.semibold)
-                                .foregroundColor(.white)
+                                .foregroundColor(Color(hex: 0xdee7e7))
                                 .frame(width: 200, height: 30)
-                                .padding()
-                                .background(Color.blue)
+                                .background(
+                                    RoundedRectangle(
+                                        cornerRadius: 10,
+                                        style: .continuous
+                                    )
+                                        .fill(Color(hex: 0x89a9a9))
+                                        .stroke(Color(hex: 0x89a9a9), lineWidth: 2)
+                                )
                         }
+                        Text("\n")
                     } else if isLoading {
                         Spacer()
                         ProgressView("Loading Recipes...")
                             .padding()
-                            .foregroundColor(.blue)
-                            .progressViewStyle(CircularProgressViewStyle(tint: .blue))
+                            .foregroundColor(Color(hex: 0xdee7e7))
+                            .progressViewStyle(CircularProgressViewStyle(tint: Color(hex: 0xdee7e7)))
                         Spacer()
                     }
                 }
@@ -176,35 +181,128 @@ struct MealTypeSelectionView: View {
             else{
                 Spacer()
                 
-                Text("Time for...")
+                Text("Time for...\n")
                     .padding(.vertical, 40)
-                    .font(.title)
+                    .font(.title2)
                     .fontWeight(.semibold)
+                    .foregroundColor(Color(hex: 0x535657))
                 
                 VStack(spacing: 10) {
-                    ForEach(MealType.allCases, id: \.self) { type in
+                    HStack{
                         Button(action: {
-                            selectedMealType = type
+                            selectedMealType = MealType(rawValue: "Breakfast")
                             isLoading = true
                             recommendationContent = nil
-                            onSelection(type)
+                            if let selectedMealType = selectedMealType{
+                                onSelection(selectedMealType)
+                            }
                             decisionMade = true
                         }) {
-                            Text(type.rawValue)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.white)
-                                .frame(width: 100, height: 30)
-                                .padding()
-                                .background(Color.blue)
+                            VStack{
+                                Image("breakfast")
+                                    .resizable()
+                                    .frame(width: 50, height: 50)
+                                    
+                                Text("Breakfast")
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(Color(hex: 0x535657))
+                                    .frame(width: 100, height: 10)
+                                    .padding()
+                            }
+                        }
+                        Button(action: {
+                            selectedMealType = MealType(rawValue: "Lunch")
+                            isLoading = true
+                            recommendationContent = nil
+                            if let selectedMealType = selectedMealType{
+                                onSelection(selectedMealType)
+                            }
+                            decisionMade = true
+                        }) {
+                            VStack{
+                                Image("lunch")
+                                    .resizable()
+                                    .frame(width: 50, height: 50)
+                                    
+                                Text("Lunch")
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(Color(hex: 0x535657))
+                                    .frame(width: 100, height: 10)
+                                    .padding()
+                            }
                         }
                     }
+                    Text("\n")
+                    HStack{
+                        Button(action: {
+                            selectedMealType = MealType(rawValue: "Dinner")
+                            isLoading = true
+                            recommendationContent = nil
+                            if let selectedMealType = selectedMealType{
+                                onSelection(selectedMealType)
+                            }
+                            decisionMade = true
+                        }) {
+                            VStack{
+                                Image("dinner")
+                                    .resizable()
+                                    .frame(width: 50, height: 50)
+                                    
+                                Text("Dinner")
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(Color(hex: 0x535657))
+                                    .frame(width: 100, height: 10)
+                                    .padding()
+                            }
+                        }
+                        Button(action: {
+                            selectedMealType = MealType(rawValue: "Snack")
+                            isLoading = true
+                            recommendationContent = nil
+                            if let selectedMealType = selectedMealType{
+                                onSelection(selectedMealType)
+                            }
+                            decisionMade = true
+                        }) {
+                            VStack{
+                                Image("snack")
+                                    .resizable()
+                                    .frame(width: 50, height: 50)
+                                    
+                                Text("Snack")
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(Color(hex: 0x535657))
+                                    .frame(width: 100, height: 10)
+                                    .padding()
+                            }
+                        }
+                    }
+//                    ForEach(MealType.allCases, id: \.self) { type in
+//                        Button(action: {
+//                            selectedMealType = type
+//                            isLoading = true
+//                            recommendationContent = nil
+//                            onSelection(type)
+//                            decisionMade = true
+//                        }) {
+//                            Image("breakfast")
+//                                .resizable()
+//                                .frame(width: 50, height: 50)
+//                                .foregroundColor(.white)
+//                            Text(type.rawValue)
+//                                .fontWeight(.semibold)
+//                                .foregroundColor(.white)
+//                                .frame(width: 100, height: 30)
+//                                .padding()
+//                        }
+//                    }
                 }
                 .padding(.horizontal)
                 
                 Spacer()
             }
         }
-//        .background(Color(hex: 0xdee7e7))
+        .background(decisionMade ? Color(hex: 0x4f646f):Color(hex: 0xdee7e7))
     }
 }
 
