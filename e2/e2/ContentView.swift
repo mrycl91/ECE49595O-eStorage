@@ -9,9 +9,7 @@ struct ContentView: View {
     @State private var selectedItem: Item?
     @State private var showingDeleteAlert = false
     @State private var showingALLDeleteAlert = false
-    @State private var navigationTag: Int?
-    @State private var detailPage = false
-    @State private var emptyItem = Item(name: "", expirationDate: nil)
+    @State private var boolitem: Item?
 
     // Key for UserDefaults
     private let itemsKey = "StoredItemsKey"
@@ -81,18 +79,11 @@ struct ContentView: View {
                                 .contentShape(Rectangle())
                                 .onTapGesture {
                                     selectedItem = items[index]
-//                                    detailPage = true
+                                    boolitem = items[index]
                                 }
-                                .sheet(item: $selectedItem){ selectedItem in
-                                    if selectedItem != emptyItem{
-                                        ItemDetailView(item: selectedItem)
-                                    }
+                                .sheet(item: $boolitem){ boolitem in
+                                    ItemDetailView(item: boolitem)
                                 }
-//                                .fullScreenCover(isPresented: $detailPage){
-//                                    if let selectedItem = selectedItem{
-//                                        ItemDetailView(item: selectedItem)
-//                                    }
-//                                }
                         }
                             .onDelete(perform: deleteItems)
                             .listRowBackground(Color(hex: 0xdee7e7))
@@ -128,7 +119,7 @@ struct ContentView: View {
            let index = items.firstIndex(where: { $0.id == selectedItem.id }) {
             items.remove(at: index)
         }
-        selectedItem = emptyItem //nil
+        selectedItem = nil
     }
 
     private func formattedDate(_ date: Date) -> String {
@@ -157,7 +148,7 @@ struct ContentView: View {
         // Display an alert if there are no expired items to delete
         guard !expiredItemsIndices.isEmpty else {
             showingDeleteAlert = true
-            selectedItem = emptyItem // nil
+            selectedItem = nil
             return
         }
         // Delete expired items
