@@ -10,10 +10,11 @@ struct AddItemView: View {
     @State private var itemName = ""
     @State private var expirationDateInput = ""
     @State private var showingDatePicker = false
-    @State private var navigateToBarCodeCameraView = false
     @State private var isShowingCameraView = false
     @State private var confirmAdd = false
     @State private var resfromtext=""
+    @State private var showingBarcodeScanner = false
+
     
     // obj recog: below===================================================
     @State private var imageCapture : UIImage?
@@ -52,8 +53,11 @@ struct AddItemView: View {
                     .buttonBorderShape(.capsule)
                     
                     Button("Barcode", action: {
-                        navigateToBarCodeCameraView = true
+                        showingBarcodeScanner = true
                     })
+                    .sheet(isPresented: $showingBarcodeScanner) {
+                        BarCodeCameraView(scannedProductName: $itemName)
+                    }
                     .buttonStyle(.bordered)
                     .buttonBorderShape(.capsule)
                 }
@@ -134,8 +138,8 @@ struct AddItemView: View {
                         itemName = ""
                         expirationDateInput = ""
                         showingDatePicker = false
-                        navigateToBarCodeCameraView = false
                         isShowingCameraView = false
+                        showingBarcodeScanner = false
                         confirmAdd = false
                         showSheet = false
                         classificationResult = ""
@@ -144,10 +148,6 @@ struct AddItemView: View {
                         classifyDate = false
                         scannedProductName = ""
                     }
-                }
-                
-                NavigationLink(destination: BarCodeCameraView(scannedProductName: $itemName), isActive: $navigateToBarCodeCameraView) {
-                    EmptyView()
                 }
             }
             .navigationTitle("Add Item 🌭")
