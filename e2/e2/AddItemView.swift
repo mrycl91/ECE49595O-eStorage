@@ -13,6 +13,7 @@ struct AddItemView: View {
     @State private var navigateToBarCodeCameraView = false
     @State private var isShowingCameraView = false
     @State private var confirmAdd = false
+    @State private var resfromtext=""
     
     // obj recog: below===================================================
     @State private var imageCapture : UIImage?
@@ -261,7 +262,75 @@ struct AddItemView: View {
               }
           }.resume()
       }
+    
+    private func generateResponse(prompt: String, text: String) {
+        let p = "\(prompt) here is the text string(\(text))"
+        
+        let requestData: [String: Any] = [
+            "model": "gpt-3.5-turbo",
+            "messages": [
+                [
+                    "role": "user",
+                    "content": p
+                ]
+            ],
+            "max_tokens": 300
+        ]
 
+        let apiKey = "KEY"
+        let apiUrl = URL(string: "https://api.openai.com/v1/chat/completions")!
+        var request = URLRequest(url: apiUrl)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: requestData)
+        } catch {
+            print("Error serializing request data: \(error)")
+            return
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Error calling GPT API: \(error)")
+                return
+            }
+
+            guard let data = data else {
+                print("No data received from GPT-3.5 API")
+                return
+            }
+         
+            if let responseString = String(data: data, encoding: .utf8) {
+                  if let responseData = responseString.data(using: .utf8) {
+                      do {
+                          
+                          let json = try JSONSerialization.jsonObject(with: responseData, options: []) as? [String: Any]
+                          if let choices = json?["choices"] as? [[String: Any]], let firstChoice = choices.first, let message = firstChoice["message"] as? [String: Any], let content = message["content"] as? String {
+                              DispatchQueue.main.async {
+                                                          self.resfromtext = content
+                                                          
+                                                          if self.classifyDate {
+                                                              // Update expirationDateInput if classifying expiration date
+                                                              self.expirationDateInput = self.resfromtext
+                                                          } else {
+                                                              // Update itemName if classifying item name
+                                                              self.itemName = self.resfromtext
+                                                          }
+                                                      }
+        
+                          }
+                          
+                      } catch {
+                          print("Error decoding response from GPT-3.5 API: \(error)")
+                      }
+                  }
+              } else {
+                  print("Unable to decode response from GPT-3.5 API")
+              }
+          }.resume()
+    }
 
     private func saveItemToUserDefaults(_ item: Item) {
         if var existingItems = UserDefaults.standard.array(forKey: "StoredItemsKey") as? [Data] {
@@ -293,11 +362,17 @@ struct AddItemView: View {
                     // Return the string of the top VNRecognizedText instance.
                     return observation.topCandidates(1).first?.string
                 }
-                if self.classifyDate{
-                    self.expirationDateInput = recognizedStrings.joined(separator: ", ")
-                } else{
-                    self.itemName = recognizedStrings.joined(separator: ", ")
-                }
+                if self.classifyDate {
+                                // If classifying expiration date, pass recognized text to GPT API with appropriate prompt
+                                let prompt = "What is the expiration date of the item inside the following text? Just give me the answer like these(yyyy-mm-dd or mm-dd)"
+                                self.generateResponse(prompt: prompt, text: recognizedStrings.joined(separator: ", "))
+                                
+                            } else {
+                             
+                                let prompt = "What is the food item name inside the following text?just return the name of it, for example: Milk"
+                                self.generateResponse(prompt: prompt, text: recognizedStrings.joined(separator: ", "))
+                                
+                            }
                 
             }
             try imageRequestHandler.perform([request])
