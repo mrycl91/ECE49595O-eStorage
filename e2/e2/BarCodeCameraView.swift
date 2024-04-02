@@ -133,58 +133,66 @@ struct BarCodeCameraView: View {
     @ObservedObject private var avManager = MetadataManager.current
     @Binding var scannedProductName: String 
     private let avman = MetadataManager.current.getPreviewLayer()
-    @Environment(\.presentationMode) var presentationMode // Add this line
+    @Environment(\.presentationMode) var presentationMode
 
     init(scannedProductName: Binding<String>) {
             self._scannedProductName = scannedProductName // Initialize the binding
         }
 
     var body: some View {
-        VStack {
-            Text(avManager.productName) // Display the dynamically updated product name
-                            .padding()
-                            .background(Color.white.opacity(0.85))
-                            .cornerRadius(8)
-            
-            GeometryReader { proxy in
-                PreviewView(
-                    previewLayer: avman,
-                    proxy: proxy
-                )
-                .background(.blue.opacity(0.1))
-                .onAppear{
-                    DispatchQueue.global().async {
-                        MetadataManager.current.session.startRunning()
-                        print("Start Running")
-                    }
+        ZStack {
+            // First layer: Background color extending to all edges
+            Color(hex: 0x4f646f)
+                .edgesIgnoringSafeArea(.all)
+
+            // Second layer: Your content
+            VStack {
+                Text(avManager.productName)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .foregroundColor(Color(hex: 0xfafaff))
+
+                GeometryReader { proxy in
+                    PreviewView(previewLayer: avman, proxy: proxy)
+                        .background(.blue.opacity(0.1))
+                        .onAppear {
+                            DispatchQueue.global().async {
+                                MetadataManager.current.session.startRunning()
+                                print("Start Running")
+                            }
+                        }
+                }
+                .frame(width: 380, height: 200)
+                .padding()
+                .padding()
+                
+                HStack{
+                    // Retake Button
+                    Image(systemName: "arrow.uturn.left.circle.fill")
+                        .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 80, height: 80)
+                            .onTapGesture {
+                                avManager.resetCameraSession()
+                                avManager.updateProductName(newValue: "Scanning...")
+                                }
+                            .padding(.trailing, 60)
+                    //Confirm Button
+                    Image(systemName: "checkmark.circle.fill")
+                        .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 80, height: 80)
+                            .onTapGesture {
+                                avManager.confirmButtonPressed()
+                                scannedProductName = avManager.productName
+                                presentationMode.wrappedValue.dismiss()
+                                }
                 }
             }
-            .frame(width: 380, height:300)
-            
-            // Add the Confirm button
-            Button("Confirm") {
-                avManager.confirmButtonPressed()
-                scannedProductName = avManager.productName
-                presentationMode.wrappedValue.dismiss()
-            }
-            .padding()
-            .background(Color.blue)
-            .foregroundColor(.white)
-            .cornerRadius(8)
-            Button("Retake") {
-                avManager.resetCameraSession() // Reset the camera session
-
+            .onAppear {
                 avManager.updateProductName(newValue: "Scanning...")
-                        }
-            .padding()
-            .background(Color.blue)
-            .foregroundColor(.white)
-            .cornerRadius(8)
+            }
         }
-        .onAppear{
-            avManager.updateProductName(newValue: "Scanning...")
-        }
-       
     }
 }
 
