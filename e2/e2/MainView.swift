@@ -39,10 +39,10 @@ struct MainView: View {
                     .tabItem {
                         Label("Recipe", systemImage: "book.pages.fill")
                     }
-                SettingView()
-                    .tabItem {
-                        Label("Settings", systemImage: "gearshape")
-                    }
+//                SettingView()
+//                    .tabItem {
+//                        Label("Settings", systemImage: "gearshape")
+//                    }
             }
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)){ _ in
                 saveItems()
