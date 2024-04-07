@@ -27,132 +27,138 @@ struct AddItemView: View {
     private var model: Resnet50? = try? Resnet50(configuration: MLModelConfiguration())
 
     var body: some View {
-        NavigationView {
-            VStack {
-                TextField("Item Name", text: $itemName)
-                    .padding()
-                
-                // updated below===================================================
-                HStack{
-                    Button("Obj Recog", action: {
-                        classifyDate = false
-                        classifyText = false
-                        classifyObject = true
-                        showSheet = true
-                    })
-                    .buttonStyle(.bordered)
-                    .buttonBorderShape(.capsule)
+        VStack {
+            GeometryReader { proxy in
+                VStack{
+                    Text("Add Item")
+                        .font(.system(size:26, weight: .bold))
+                        .position(x: 110, y: 60)
+                        .foregroundColor(Color(hex: 0x535657))
                     
-                    Button("Text Recog", action: {
-                        classifyDate = false
-                        classifyText = true
-                        classifyObject = false
-                        showSheet = true
-                    })
-                    .buttonStyle(.bordered)
-                    .buttonBorderShape(.capsule)
+                    TextField("Item Name", text: $itemName)
+                        .padding()
                     
-                    Button("Barcode", action: {
-                        showingBarcodeScanner = true
-                    })
-                    .sheet(isPresented: $showingBarcodeScanner) {
-                        BarCodeCameraView(scannedProductName: $itemName)
-                    }
-                    .buttonStyle(.bordered)
-                    .buttonBorderShape(.capsule)
-                }
-                
-                .sheet(isPresented: $showSheet, onDismiss: {
-                    showSheet = false
-                    if let image = imageCapture{
-                        if classifyText{
-                            performTextRecognition(image: image)
-                        } else{
-                            processImage(image: image)
-                            gptVision(image: image)
+                    // updated below===================================================
+                    HStack{
+                        Button("Obj Recog", action: {
+                            classifyDate = false
+                            classifyText = false
+                            classifyObject = true
+                            showSheet = true
+                        })
+                        .buttonStyle(.bordered)
+                        .buttonBorderShape(.capsule)
+                        
+                        Button("Text Recog", action: {
+                            classifyDate = false
+                            classifyText = true
+                            classifyObject = false
+                            showSheet = true
+                        })
+                        .buttonStyle(.bordered)
+                        .buttonBorderShape(.capsule)
+                        
+                        Button("Barcode", action: {
+                            showingBarcodeScanner = true
+                        })
+                        .sheet(isPresented: $showingBarcodeScanner) {
+                            BarCodeCameraView(scannedProductName: $itemName)
                         }
+                        .buttonStyle(.bordered)
+                        .buttonBorderShape(.capsule)
                     }
-                }) {
-                    // If you wish to take a photo from camera instead:
-                    ImgPicker(sourceType: .camera, selectedImage: self.$imageCapture)
-                }
-                // updated: above===================================================
-                
-
-                TextField("Expiration Date (yyyy-mm-dd) or (mm-dd)", text: $expirationDateInput)
-//                    .onTapGesture {
-//                        showingDatePicker = true
-//                    }
-                    .padding()
-                
-                HStack{
-                    Button("Text Recog", action: {
-                        classifyDate = true
-                        classifyText = true
-                        classifyObject = false
-                        showSheet = true
-                    })
-                    .buttonStyle(.bordered)
-                    .buttonBorderShape(.capsule)
+                    
                     .sheet(isPresented: $showSheet, onDismiss: {
                         showSheet = false
                         if let image = imageCapture{
                             if classifyText{
                                 performTextRecognition(image: image)
+                            } else{
+                                processImage(image: image)
+                                gptVision(image: image)
                             }
-//                            } else{
-//                                processImage(image: image)
-//                            }
                         }
                     }) {
                         // If you wish to take a photo from camera instead:
                         ImgPicker(sourceType: .camera, selectedImage: self.$imageCapture)
                     }
-                    DatePicker("Best by", selection: Binding(
-                        get: {
-                            dateFormatter.date(from: expirationDateInput) ?? Date()
-                        },
-                        set: {
-                            expirationDateInput = dateFormatter.string(from: $0)
-                        }
-                    ), displayedComponents: .date)
-                    .datePickerStyle(.compact)
-                    .padding()
-                }
-
-                Button("Confirm", action: {
-                    let newItem = createItem()
-                    onAdd(newItem)
-
-                    // Save the new item to UserDefaults
-                    saveItemToUserDefaults(newItem)
-
-                    // Dismiss the view
-                    presentationMode.wrappedValue.dismiss()
+                    // updated: above===================================================
                     
-                    confirmAdd = true
-                })
-                .padding(30)
-                .alert("Item Added Successfully", isPresented: $confirmAdd){
-                    Button("OK"){
-                        itemName = ""
-                        expirationDateInput = ""
-                        showingDatePicker = false
-                        isShowingCameraView = false
-                        showingBarcodeScanner = false
-                        confirmAdd = false
-                        showSheet = false
-                        classificationResult = ""
-                        classifyText = false
-                        classifyObject = false
-                        classifyDate = false
-                        scannedProductName = ""
+                    
+                    TextField("Expiration Date (yyyy-mm-dd) or (mm-dd)", text: $expirationDateInput)
+                    //                    .onTapGesture {
+                    //                        showingDatePicker = true
+                    //                    }
+                        .padding()
+                    
+                    HStack{
+                        Button("Text Recog", action: {
+                            classifyDate = true
+                            classifyText = true
+                            classifyObject = false
+                            showSheet = true
+                        })
+                        .buttonStyle(.bordered)
+                        .buttonBorderShape(.capsule)
+                        .sheet(isPresented: $showSheet, onDismiss: {
+                            showSheet = false
+                            if let image = imageCapture{
+                                if classifyText{
+                                    performTextRecognition(image: image)
+                                }
+                                //                            } else{
+                                //                                processImage(image: image)
+                                //                            }
+                            }
+                        }) {
+                            // If you wish to take a photo from camera instead:
+                            ImgPicker(sourceType: .camera, selectedImage: self.$imageCapture)
+                        }
+                        DatePicker("Best by", selection: Binding(
+                            get: {
+                                dateFormatter.date(from: expirationDateInput) ?? Date()
+                            },
+                            set: {
+                                expirationDateInput = dateFormatter.string(from: $0)
+                            }
+                        ), displayedComponents: .date)
+                        .datePickerStyle(.compact)
+                        .padding()
+                    }
+                    
+                    Button("Confirm", action: {
+                        let newItem = createItem()
+                        onAdd(newItem)
+                        
+                        // Save the new item to UserDefaults
+                        saveItemToUserDefaults(newItem)
+                        
+                        // Dismiss the view
+                        presentationMode.wrappedValue.dismiss()
+                        
+                        confirmAdd = true
+                    })
+                    .padding(30)
+                    .alert("Item Added Successfully", isPresented: $confirmAdd){
+                        Button("OK"){
+                            itemName = ""
+                            expirationDateInput = ""
+                            showingDatePicker = false
+                            isShowingCameraView = false
+                            showingBarcodeScanner = false
+                            confirmAdd = false
+                            showSheet = false
+                            classificationResult = ""
+                            classifyText = false
+                            classifyObject = false
+                            classifyDate = false
+                            scannedProductName = ""
+                        }
                     }
                 }
             }
-            .navigationTitle("Add Item 🌭")
-//            .background(Color(hex: 0xdee7e7))
         }
+        .background(Color(hex: 0xdee7e7))
     }
 
     private func createItem() -> Item {
