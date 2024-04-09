@@ -30,42 +30,79 @@ struct AddItemView: View {
         VStack {
             GeometryReader { proxy in
                 VStack{
-                    Text("Add Item")
+                    Color.clear.frame(height: 20)
+                    Text("     Add Item")
                         .font(.system(size:26, weight: .bold))
-                        .position(x: 110, y: 60)
+                        // .position(x: 90, y: 60)
                         .foregroundColor(Color(hex: 0x535657))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.top)
+                    
+                    Color.clear.frame(height: 20)
                     
                     TextField("Item Name", text: $itemName)
                         .padding()
-                    
-                    // updated below===================================================
+
                     HStack{
-                        Button("Obj Recog", action: {
+                        Button(action: {
                             classifyDate = false
                             classifyText = false
                             classifyObject = true
                             showSheet = true
-                        })
-                        .buttonStyle(.bordered)
-                        .buttonBorderShape(.capsule)
+                        }){
+                            VStack{
+                                Image(systemName: "camera.viewfinder")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 50, height: 50)
+//                                Text("Object\nRecognition")
+//                                    .font(.system(size: 15))
+                            }
+                        }
+                        .frame(width: 120, height: 120)
+                        .foregroundColor(Color(hex: 0x535657))
+                        //.background(Color(hex: 0x6f848f))
+                        .cornerRadius(8)
                         
-                        Button("Text Recog", action: {
+                        Button(action: {
                             classifyDate = false
                             classifyText = true
                             classifyObject = false
                             showSheet = true
-                        })
-                        .buttonStyle(.bordered)
-                        .buttonBorderShape(.capsule)
+                        }){
+                            VStack{
+                                Image(systemName: "text.viewfinder")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 50, height: 50)
+//                                Text("Text\nRecognition")
+//                                    .font(.system(size: 15))
+                            }
+                        }
+                        .frame(width: 120, height: 120)
+                        .foregroundColor(Color(hex: 0x535657))
+                        //.background(Color(hex: 0x6f848f))
+                        .cornerRadius(8)
                         
-                        Button("Barcode", action: {
+                        Button(action: {
                             showingBarcodeScanner = true
-                        })
+                        }){
+                            VStack{
+                                Image(systemName: "barcode.viewfinder")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 50, height: 50)
+//                                Text("Barcode\nLookup")
+//                                    .font(.system(size: 15))
+                            }
+                        }
                         .sheet(isPresented: $showingBarcodeScanner) {
                             BarCodeCameraView(scannedProductName: $itemName)
                         }
-                        .buttonStyle(.bordered)
-                        .buttonBorderShape(.capsule)
+                        .frame(width: 120, height: 120)
+                        .foregroundColor(Color(hex: 0x535657))
+                        //.background(Color(hex: 0x6f848f))
+                        .cornerRadius(8)
                     }
                     
                     .sheet(isPresented: $showSheet, onDismiss: {
@@ -84,22 +121,43 @@ struct AddItemView: View {
                     }
                     // updated: above===================================================
                     
-                    
-                    TextField("Expiration Date (yyyy-mm-dd) or (mm-dd)", text: $expirationDateInput)
-                    //                    .onTapGesture {
-                    //                        showingDatePicker = true
-                    //                    }
-                        .padding()
+                    Color.clear.frame(height: 20)
                     
                     HStack{
-                        Button("Text Recog", action: {
+                        TextField("Expiration Date (yyyy-mm-dd) or (mm-dd)", text: $expirationDateInput)
+                        DatePicker("", selection: Binding(
+                            get: {
+                                dateFormatter.date(from: expirationDateInput) ?? Date()
+                            },
+                            set: {
+                                expirationDateInput = dateFormatter.string(from: $0)
+                            }
+                        ), displayedComponents: .date)
+                        .datePickerStyle(.compact)
+                    }
+                    .padding()
+                    
+                    HStack{
+                        Button(action: {
                             classifyDate = true
                             classifyText = true
                             classifyObject = false
                             showSheet = true
-                        })
-                        .buttonStyle(.bordered)
-                        .buttonBorderShape(.capsule)
+                        }){
+                            VStack{
+                                Image(systemName: "text.viewfinder")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 50, height: 50)
+
+//                                Text("Text\nRecognition")
+//                                    .font(.system(size: 15))
+                            }
+                        }
+                        .frame(width: 120, height: 120)
+                        .foregroundColor(Color(hex: 0x535657))
+                        //.background(Color(hex: 0x6f848f))
+                        .cornerRadius(8)
                         .sheet(isPresented: $showSheet, onDismiss: {
                             showSheet = false
                             if let image = imageCapture{
@@ -114,16 +172,6 @@ struct AddItemView: View {
                             // If you wish to take a photo from camera instead:
                             ImgPicker(sourceType: .camera, selectedImage: self.$imageCapture)
                         }
-                        DatePicker("Best by", selection: Binding(
-                            get: {
-                                dateFormatter.date(from: expirationDateInput) ?? Date()
-                            },
-                            set: {
-                                expirationDateInput = dateFormatter.string(from: $0)
-                            }
-                        ), displayedComponents: .date)
-                        .datePickerStyle(.compact)
-                        .padding()
                     }
                     
                     Button("Confirm", action: {
@@ -138,6 +186,10 @@ struct AddItemView: View {
                         
                         confirmAdd = true
                     })
+                    .frame(width: 120, height: 45)
+                    .foregroundColor(Color(hex: 0xdee7e7))
+                    .background(Color(hex: 0x7f949f))
+                    .cornerRadius(10)
                     .padding(30)
                     .alert("Item Added Successfully", isPresented: $confirmAdd){
                         Button("OK"){
@@ -156,6 +208,7 @@ struct AddItemView: View {
                         }
                     }
                 }
+                .textFieldStyle(.automatic)
             }
         }
         .background(Color(hex: 0xdee7e7))
@@ -228,7 +281,7 @@ struct AddItemView: View {
             "max_tokens": 20
         ]
    
-        let apiKey = "apiKey"
+        let apiKey = "APIKEY"
         let apiUrl = URL(string: "https://api.openai.com/v1/chat/completions")!
         var request = URLRequest(url: apiUrl)
         request.httpMethod = "POST"
@@ -283,7 +336,7 @@ struct AddItemView: View {
             "max_tokens": 300
         ]
 
-        let apiKey = "KEY"
+        let apiKey = "APIKEY"
         let apiUrl = URL(string: "https://api.openai.com/v1/chat/completions")!
         var request = URLRequest(url: apiUrl)
         request.httpMethod = "POST"
