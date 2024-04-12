@@ -90,7 +90,7 @@ struct MainView: View {
             ],
             "max_tokens": 300
         ]
-        let apiKey = "api_key"
+        let apiKey = ProcessInfo.processInfo.environment["GPT_APIKEY"] ?? ""
         let apiUrl = URL(string: "https://api.openai.com/v1/chat/completions")!
         var request = URLRequest(url: apiUrl)
         request.httpMethod = "POST"

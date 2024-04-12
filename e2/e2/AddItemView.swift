@@ -323,7 +323,7 @@ struct AddItemView: View {
             "max_tokens": 20
         ]
    
-        let apiKey = "APIKEY"
+        let apiKey = ProcessInfo.processInfo.environment["GPT_APIKEY"] ?? ""
         let apiUrl = URL(string: "https://api.openai.com/v1/chat/completions")!
         var request = URLRequest(url: apiUrl)
         request.httpMethod = "POST"
@@ -378,7 +378,7 @@ struct AddItemView: View {
             "max_tokens": 300
         ]
 
-        let apiKey = "APIKEY"
+        let apiKey = ProcessInfo.processInfo.environment["GPT_APIKEY"] ?? ""
         let apiUrl = URL(string: "https://api.openai.com/v1/chat/completions")!
         var request = URLRequest(url: apiUrl)
         request.httpMethod = "POST"
