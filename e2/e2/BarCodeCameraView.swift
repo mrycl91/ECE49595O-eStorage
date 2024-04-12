@@ -65,7 +65,7 @@ class MetadataManager: NSObject, AVCaptureMetadataOutputObjectsDelegate, Observa
     }
     
     func fetchProductByUPC(upc: String) {
-        let apiKey = "231f31b11e2978aa36f44764d5cfdb9f4d09079b113409f1e5b3e273ed10aacd"
+        let apiKey = ProcessInfo.processInfo.environment["Barcode_APIKEY"] ?? ""
         let urlString = "https://go-upc.com/api/v1/code/\(upc)?key=\(apiKey)" // Replace with the actual API endpoint from Go-UPC
         guard let url = URL(string: urlString) else {
             print("Invalid URL")
