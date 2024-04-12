@@ -368,12 +368,14 @@ struct AddItemView: View {
               }
           }.resume()
       }
-    
+
     private func generateResponse(prompt: String, text: String) {
         let p = "\(prompt) here is the text string(\(text))"
+        print(p)
         
         let requestData: [String: Any] = [
-            "model": "gpt-3.5-turbo",
+            //"model": "gpt-3.5-turbo",
+            "model": "gpt-4",
             "messages": [
                 [
                     "role": "user",
@@ -418,8 +420,16 @@ struct AddItemView: View {
                                                           self.resfromtext = content
                                                           
                                                           if self.classifyDate {
+                                                              if content == "N/A"{
+                                                                  let dateFormatter = DateFormatter()
+                                                                  dateFormatter.dateFormat = "yyyy-MM-dd"
+                                                                  let currentDate = Date()
+                                                                  self.expirationDateInput = dateFormatter.string(from: currentDate)
+                                                              }
                                                               // Update expirationDateInput if classifying expiration date
-                                                              self.expirationDateInput = self.resfromtext
+                                                              else{
+                                                                  self.expirationDateInput = self.resfromtext
+                                                              }
                                                           } else {
                                                               // Update itemName if classifying item name
                                                               self.itemName = self.resfromtext
@@ -470,7 +480,7 @@ struct AddItemView: View {
                 }
                 if self.classifyDate {
                                 // If classifying expiration date, pass recognized text to GPT API with appropriate prompt
-                                let prompt = "What is the expiration date of the item inside the following text? Just give me the answer like these(yyyy-mm-dd or mm-dd)"
+                                let prompt = "What is the expiration date of the item inside the following text? Just give me the answer like these(yyyy-mm-dd or mm-dd). If you didn't find the date or the date is invalid or there is not any text, please just return N/A."
                                 self.generateResponse(prompt: prompt, text: recognizedStrings.joined(separator: ", "))
                                 
                             } else {
