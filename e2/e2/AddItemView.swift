@@ -45,6 +45,11 @@ struct AddItemView: View {
                                 .multilineTextAlignment(.center)
                                 .foregroundColor(.gray)
                         }
+                        .onChange(of: itemName) {
+                            if itemName.count > 40 {
+                                itemName = String(itemName.prefix(40))
+                            }
+                        }
                         .multilineTextAlignment(.center)
                         .foregroundColor(Color(hex: 0x535657))
                         .padding()
