@@ -53,7 +53,7 @@
       <EnvironmentVariables>
          <EnvironmentVariable
             key = "GPT_APIKEY"
-            value = "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"
+            value = "KEY"
             isEnabled = "YES">
          </EnvironmentVariable>
          <EnvironmentVariable
