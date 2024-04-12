@@ -144,8 +144,8 @@ struct MealTypeSelectionView: View {
                 .frame(maxWidth: .infinity)
             
             if decisionMade {
-                ScrollView {
-                    if let recommendationContent = recommendationContent {
+                if let recommendationContent = recommendationContent {
+                    ScrollView{
                         Text(recommendationContent)
                             .padding()
                             .multilineTextAlignment(.leading)
@@ -167,16 +167,35 @@ struct MealTypeSelectionView: View {
                                 )
                         }
                         Text("\n")
-                    } else if isLoading {
+                    }
+                } else if isLoading {
+                    VStack{
                         Spacer()
                         ProgressView("Loading Recipes...")
                             .padding()
                             .foregroundColor(Color(hex: 0xdee7e7))
                             .progressViewStyle(CircularProgressViewStyle(tint: Color(hex: 0xdee7e7)))
+                        Text("\n")
+                        Button(action: {
+                            isLoading = false
+                            decisionMade = false
+                        }) {
+                            Text("Back")
+                                .fontWeight(.semibold)
+                                .foregroundColor(Color(hex: 0xdee7e7))
+                                .frame(width: 200, height: 30)
+                                .background(
+                                    RoundedRectangle(
+                                        cornerRadius: 10,
+                                        style: .continuous
+                                    )
+                                        .fill(Color(hex: 0x89a9a9))
+                                        .stroke(Color(hex: 0x89a9a9), lineWidth: 2)
+                                )
+                        }
                         Spacer()
                     }
                 }
-                .padding()
             }
             else{
                 Spacer()
@@ -277,25 +296,6 @@ struct MealTypeSelectionView: View {
                             }
                         }
                     }
-//                    ForEach(MealType.allCases, id: \.self) { type in
-//                        Button(action: {
-//                            selectedMealType = type
-//                            isLoading = true
-//                            recommendationContent = nil
-//                            onSelection(type)
-//                            decisionMade = true
-//                        }) {
-//                            Image("breakfast")
-//                                .resizable()
-//                                .frame(width: 50, height: 50)
-//                                .foregroundColor(.white)
-//                            Text(type.rawValue)
-//                                .fontWeight(.semibold)
-//                                .foregroundColor(.white)
-//                                .frame(width: 100, height: 30)
-//                                .padding()
-//                        }
-//                    }
                 }
                 .padding(.horizontal)
                 

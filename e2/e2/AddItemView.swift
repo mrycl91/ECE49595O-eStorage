@@ -14,9 +14,8 @@ struct AddItemView: View {
     @State private var confirmAdd = false
     @State private var resfromtext=""
     @State private var showingBarcodeScanner = false
+    @FocusState private var showingKeyBoard: Bool
 
-    
-    // obj recog: below===================================================
     @State private var imageCapture : UIImage?
     @State private var showSheet = false
     @State private var classificationResult = ""
@@ -33,14 +32,21 @@ struct AddItemView: View {
                     Color.clear.frame(height: 20)
                     Text("     Add Item")
                         .font(.system(size:26, weight: .bold))
-                        // .position(x: 90, y: 60)
                         .foregroundColor(Color(hex: 0x535657))
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.top)
                     
                     Color.clear.frame(height: 20)
                     
-                    TextField("Item Name", text: $itemName)
+                    TextField("", text: $itemName)
+                        .focused($showingKeyBoard)
+                        .placeholder(when: itemName.isEmpty) {
+                            Text("Item Name")
+                                .multilineTextAlignment(.center)
+                                .foregroundColor(.gray)
+                        }
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(Color(hex: 0x535657))
                         .padding()
 
                     HStack{
@@ -61,7 +67,6 @@ struct AddItemView: View {
                         }
                         .frame(width: 120, height: 120)
                         .foregroundColor(Color(hex: 0x535657))
-                        //.background(Color(hex: 0x6f848f))
                         .cornerRadius(8)
                         
                         Button(action: {
@@ -81,7 +86,6 @@ struct AddItemView: View {
                         }
                         .frame(width: 120, height: 120)
                         .foregroundColor(Color(hex: 0x535657))
-                        //.background(Color(hex: 0x6f848f))
                         .cornerRadius(8)
                         
                         Button(action: {
@@ -101,10 +105,8 @@ struct AddItemView: View {
                         }
                         .frame(width: 120, height: 120)
                         .foregroundColor(Color(hex: 0x535657))
-                        //.background(Color(hex: 0x6f848f))
                         .cornerRadius(8)
                     }
-                    
                     .sheet(isPresented: $showSheet, onDismiss: {
                         showSheet = false
                         if let image = imageCapture{
@@ -116,15 +118,44 @@ struct AddItemView: View {
                             }
                         }
                     }) {
-                        // If you wish to take a photo from camera instead:
                         ImgPicker(sourceType: .camera, selectedImage: self.$imageCapture)
                     }
-                    // updated: above===================================================
                     
                     Color.clear.frame(height: 20)
                     
                     HStack{
-                        TextField("Expiration Date (yyyy-mm-dd) or (mm-dd)", text: $expirationDateInput)
+                        TextField("", text: $expirationDateInput)
+                            .focused($showingKeyBoard)
+                            .keyboardType(.numberPad)
+                            .onChange(of: expirationDateInput) {
+                                if expirationDateInput.count > 10 {
+                                    expirationDateInput = String(expirationDateInput.prefix(10))
+                                }
+                                var withoutHyphen = String(expirationDateInput.replacingOccurrences(of: "-", with: "").prefix(8))
+                                if withoutHyphen.count > 6 {
+                                    withoutHyphen.insert("-", at: expirationDateInput.index(expirationDateInput.startIndex, offsetBy: 6))
+                                    expirationDateInput = withoutHyphen
+                                }
+                                if withoutHyphen.count > 4 {
+                                    withoutHyphen.insert("-", at: expirationDateInput.index(expirationDateInput.startIndex, offsetBy: 4))
+                                    expirationDateInput = withoutHyphen
+                                } else {
+                                    expirationDateInput = withoutHyphen
+                                }
+                            }
+                            .placeholder(when: expirationDateInput.isEmpty) {
+                                Text("Expiration Date (YYYYMMDD)")
+                                    .multilineTextAlignment(.center)
+                                    .foregroundColor(.gray)
+                            }
+                            .multilineTextAlignment(.center)
+                            .foregroundColor(Color(hex: 0x535657))
+                    }
+                    .padding()
+                    
+                    HStack{
+                        Spacer()
+                        
                         DatePicker("", selection: Binding(
                             get: {
                                 dateFormatter.date(from: expirationDateInput) ?? Date()
@@ -134,10 +165,10 @@ struct AddItemView: View {
                             }
                         ), displayedComponents: .date)
                         .datePickerStyle(.compact)
-                    }
-                    .padding()
-                    
-                    HStack{
+                        .frame(width: 120)
+                        
+                        Spacer()
+                        
                         Button(action: {
                             classifyDate = true
                             classifyText = true
@@ -156,7 +187,6 @@ struct AddItemView: View {
                         }
                         .frame(width: 120, height: 120)
                         .foregroundColor(Color(hex: 0x535657))
-                        //.background(Color(hex: 0x6f848f))
                         .cornerRadius(8)
                         .sheet(isPresented: $showSheet, onDismiss: {
                             showSheet = false
@@ -164,14 +194,12 @@ struct AddItemView: View {
                                 if classifyText{
                                     performTextRecognition(image: image)
                                 }
-                                //                            } else{
-                                //                                processImage(image: image)
-                                //                            }
                             }
                         }) {
-                            // If you wish to take a photo from camera instead:
                             ImgPicker(sourceType: .camera, selectedImage: self.$imageCapture)
                         }
+                        
+                        Spacer()
                     }
                     
                     Button("Confirm", action: {
@@ -212,6 +240,20 @@ struct AddItemView: View {
             }
         }
         .background(Color(hex: 0xdee7e7))
+        .gesture(DragGesture(minimumDistance: 3.0, coordinateSpace: .local)
+            .onEnded { value in
+                print(value.translation)
+                switch(value.translation.width, value.translation.height) {
+//                    case (...0, -30...30):  print("left swipe")
+//                    case (0..., -30...30):  print("right swipe")
+//                    case (-100...100, ...0):  print("up swipe")
+                    case (-100...100, 0...):  
+//                        print("down swipe")
+                        showingKeyBoard = false
+                    default:  print("no clue")
+                }
+            }
+        )
     }
 
     private func createItem() -> Item {
@@ -514,6 +556,23 @@ private let dateFormatter: DateFormatter = {
     formatter.dateFormat = "yyyy-MM-dd"
     return formatter
 }()
+
+extension View {
+    func placeholder<Content: View>(
+        when shouldShow: Bool,
+//        alignment: Alignment = .leading,
+        @ViewBuilder placeholder: () -> Content) -> some View {
+            ZStack() {
+                placeholder().opacity(shouldShow ? 1 : 0)
+                self
+            }
+
+//        ZStack(alignment: alignment) {
+//            placeholder().opacity(shouldShow ? 1 : 0)
+//            self
+//        }
+        }
+}
 
 extension UIImage {
     // transform UIImage to CVPixelBuffer
