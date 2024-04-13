@@ -4,7 +4,7 @@
 
 This is the main directory that stores our app files and the configuration files we need.
 
-- **e2.xcodeproj**: A special directory created by Xcode to store all the files and settings for our project.
+- **e2.xcodeproj**: A special directory created by Xcode to store all the settings for our project.
   - **project.pbxproj**: Contains all the settings and configurations for our iOS app project.
   - **xcuserdata**: Contains user-specific settings and configurations for our project.
   - **project.xcworkspace**: Represents the Xcode workspace for our project.
