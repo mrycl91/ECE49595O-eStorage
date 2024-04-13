@@ -1,6 +1,6 @@
 # ECE49595O eStorage
 
-## .e2
+## e2
 
 This is the main directory that stores our app files and the configuration files we need.
 
