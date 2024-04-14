@@ -262,7 +262,7 @@ struct AddItemView: View {
 //                    case (...0, -30...30):  print("left swipe")
 //                    case (0..., -30...30):  print("right swipe")
 //                    case (-100...100, ...0):  print("up swipe")
-                    case (-100...100, 0...):  
+                    case (-100...100, 0...):
 //                        print("down swipe")
                         showingKeyBoard = false
                     default:  print("no clue")
@@ -487,7 +487,7 @@ struct AddItemView: View {
                 }
                 if self.classifyDate {
                                 // If classifying expiration date, pass recognized text to GPT API with appropriate prompt
-                                let prompt = "What is the expiration date of the item inside the following text? Just give me the answer like these(yyyy-mm-dd or mm-dd). If you didn't find the date or the date is invalid or there is not any text, please just return N/A."
+                                let prompt = "What is the expiration date of the item inside the following text? Just give me the answer like \"yyyy-mm-dd\". If the date doesn't have dd, set it as the last day of the month. If you didn't find the date or the date is invalid or there is not any text, please just return N/A."
                                 self.generateResponse(prompt: prompt, text: recognizedStrings.joined(separator: ", "))
                                 
                             } else {
