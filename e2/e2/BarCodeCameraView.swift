@@ -5,7 +5,7 @@ import Combine
 class MetadataManager: NSObject, AVCaptureMetadataOutputObjectsDelegate, ObservableObject {
     static let current = MetadataManager()
     let session = AVCaptureSession()
-    @Published var productName: String = "Scanning…"
+    @Published var productName: String = "Scanning..."
     
     func updateProductName(newValue: String) {
         self.productName = newValue
@@ -131,7 +131,7 @@ struct PreviewView: UIViewRepresentable {
 
 struct BarCodeCameraView: View {
     @ObservedObject private var avManager = MetadataManager.current
-    @Binding var scannedProductName: String 
+    @Binding var scannedProductName: String
     private let avman = MetadataManager.current.getPreviewLayer()
     @Environment(\.presentationMode) var presentationMode
 
@@ -185,8 +185,11 @@ struct BarCodeCameraView: View {
                             .onTapGesture {
                                 avManager.confirmButtonPressed()
                                 scannedProductName = avManager.productName
-                                presentationMode.wrappedValue.dismiss()
+                                if scannedProductName=="Scanning..." || scannedProductName=="Product Not Found"{
+                                    scannedProductName = ""
                                 }
+                                presentationMode.wrappedValue.dismiss()
+                            }
                 }
             }
             .onAppear {
