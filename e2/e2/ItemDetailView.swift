@@ -5,17 +5,66 @@ import UserNotifications
 struct ItemDetailView: View {
     @ObservedObject var item: Item
     @State private var showingNotificationSetting = false
+    @State private var showingDateChange = false
     @State private var notifyEnable = false
+    @FocusState private var showingKeyBoard: Bool
 
     var body: some View {
         VStack {
             Spacer()
-            Text("\(item.name)\n")
-                .frame(maxWidth: .infinity)
-                .font(.title)
+            TextField("", text: $item.name)
+                .focused($showingKeyBoard)
+                .placeholder(when: item.name.isEmpty) {
+                    Text("\(item.name)\n")
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(Color(hex: 0xfafaff))
+                        .font(.title)
+                }
+                .onChange(of: item.name) {
+                    if item.name.count > 40 {
+                        item.name = String(item.name.prefix(40))
+                    }
+                }
+                .underline()
+                .multilineTextAlignment(.center)
                 .foregroundColor(Color(hex: 0xfafaff))
-            Text("Best by \(formattedDate(item.expirationDate))\n")
-                .foregroundColor(Color(hex: 0xdee7e7))
+                .font(.title)
+                .padding()
+            
+//            Text("\(item.name)\n")
+//                .frame(maxWidth: .infinity)
+//                .font(.title)
+//                .foregroundColor(Color(hex: 0xfafaff))
+            
+//            Button(action: {
+//                showingDateChange = true
+//            }) {
+//                Label("Best by \(formattedDate(item.expirationDate))\n", systemImage: "pencil")
+//                    .foregroundColor(Color(hex: 0xfafaff))
+//            }
+//                .padding()
+//                .sheet(isPresented: $showingDateChange){
+//                    ChangeDateView(item: item)
+//                        .presentationDetents([.fraction(0.4)])
+//                }
+            
+            HStack{
+                Text("Best by \(formattedDate(item.expirationDate))\n")
+                    .foregroundColor(Color(hex: 0xdee7e7))
+                    .multilineTextAlignment(.center)
+                
+                Button(action: {
+                    showingDateChange = true
+                }) {
+                    Label("", systemImage: "pencil.line")
+                        .foregroundColor(Color(hex: 0xfafaff))
+                }
+                    .sheet(isPresented: $showingDateChange){
+                        ChangeDateView(item: item)
+                            .presentationDetents([.fraction(0.4)])
+                    }
+            }
+            
             Text("Notify on \(formattedDateTime(item.notificationTime))")
                 .foregroundColor(Color(hex: 0xdee7e7))
             
@@ -23,6 +72,7 @@ struct ItemDetailView: View {
             
             Toggle( isOn: $item.isNotificationEnabled){
                 Label("Notification", systemImage: "bell")
+                    .foregroundColor(Color(hex: 0xfafaff))
             }
             .frame(width: 200)
                 .onChange(of: item.isNotificationEnabled) {
@@ -40,12 +90,10 @@ struct ItemDetailView: View {
                 showingNotificationSetting = true
             }) {
                 Label("Go to Notification Setting", systemImage: "gear")
-//                Text("Notification Setting")
                     .foregroundColor(Color(hex: 0xfafaff))
             }
                 .padding()
                 .sheet(isPresented: $showingNotificationSetting){
-//                    Text("Hi")
                     NotificationSettingView(item: item)
                         .presentationDetents([.fraction(0.4)])
                 }

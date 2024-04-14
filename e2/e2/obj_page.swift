@@ -1,227 +1,162 @@
-//import SwiftUI
-//import Vision
-//import CoreML
-//
-//struct obj_page: View {
-//    @State private var imageCapture : UIImage?
-//    @State private var showSheet = true
-//    @State private var classificationResult = ""
-//    @State private var classifyText = false
-//    @State private var classifyObject = true
-//    
-//    private var model: Resnet50?
-//    // initialize model
-//    init() {
-//        do {
-//            model = try Resnet50(configuration: MLModelConfiguration())
-//        } catch {
-//            print("Unable to initialize model\(error)")
-//        }
-//    }
-//    
-//    var body: some View {
-//        HStack {
-//            if imageCapture != nil{
-//                Text("Classification Result: \(classificationResult)")
-//                    .padding()
-//            }
-//        }
-//        
-//        VStack {
-//            if let image = imageCapture{
-//                Image(uiImage: image)
-//                    .resizable()
-//                    .padding(.all, 4)
-//                    .frame(width: 300, height: 400)
-//                    .background(Color.black.opacity(0.2))
-//                    .aspectRatio(contentMode: .fill)
-//                    .padding(8)
-//                
-//            } else{
-////                Button("Text"){
-////                    showSheet = true
-////                    classifyText = true
-////                    classifyObject = false
-////                }
-////                .padding(.horizontal, 20)
-////                .padding(.vertical, 10)
-////                .border(.gray)
-//                
-////                Button("Object"){
-////                    showSheet = true
-////                    classifyText = false
-////                    classifyObject = true
-////                }
-////                .padding(.horizontal, 20)
-////                .padding(.vertical, 10)
-////                .border(.gray)
-//            }
-//        }
-//        .padding(.horizontal, 20)
-//        .sheet(isPresented: $showSheet, onDismiss: {
-//            showSheet = false
-//            if let image = imageCapture{
-//                if classifyText{
-//                    performTextRecognition(image: image)
-//                } else{
-//                    processImage(image: image)
-//                }
-//            }
-//        }) {
-//            // If you wish to take a photo from camera instead:
-//            ImgPicker(sourceType: .camera, selectedImage: self.$imageCapture)
-//        }
-//        
-//        HStack{
-//            if imageCapture != nil{
-//                Button("Confirm, and do text recogntion"){
-//                    print("Click Confirm")
-//                    if classifyObject{
-//                        showSheet = true
-//                        classifyText = true
-//                        classifyObject = false
-//                        
-//                    } else{
-//                        imageCapture = nil // just tmp for go back
-//                    }
-//                }
-//                Button("Retake"){
-//                    showSheet = true
-//                }
-//            }
-//        }
-//        .sheet(isPresented: $showSheet, onDismiss: {
-//            showSheet = false
-//            if let image = imageCapture{
-//                if classifyText{
-//                    performTextRecognition(image: image)
-//                } else{
-//                    processImage(image: image)
-//                }
-//            }
-//        }) {
-//            // If you wish to take a photo from camera instead:
-//            ImgPicker(sourceType: .camera, selectedImage: self.$imageCapture)
-//        }
-//    }
-//    
-//    private func performTextRecognition(image: UIImage?){
-//        guard let cgimage = image?.cgImage else {
-//            fatalError("Unable to create CGImage from UIImage")
-//        }
-//        do {
-//            let imageRequestHandler = VNImageRequestHandler(cgImage: cgimage)
-//            
-//            let request = VNRecognizeTextRequest { request, error in
-//                guard let observations = request.results as? [VNRecognizedTextObservation] else {
-//                    return
-//                }
-//                let recognizedStrings = observations.compactMap { observation in
-//                    // Return the string of the top VNRecognizedText instance.
-//                    return observation.topCandidates(1).first?.string
-//                }
-//                self.classificationResult = recognizedStrings.joined(separator: ", ")
-//            }
-//            try imageRequestHandler.perform([request])
-//        } catch {
-//            print("Error: \(error)")
-//        }
-//    }
-//    
-//    func processImage(image: UIImage?) {
-//        // 確認模型是否可用
-//        guard let model = model else { return }
-//        
-//        // 開始一個指定大小和比例的圖形上下文
-//        UIGraphicsBeginImageContextWithOptions(CGSize(width: 224, height: 224), true, 2.0)
-//        
-//        // 在圖形上下文中繪製原始圖片到指定的矩形區域內
-//        if let image = imageCapture{
-//            image.draw(in: CGRect(x: 0, y: 0, width: 224, height: 224))
-//        }
-//        
-//        // 從目前的圖形上下文中獲取處理後的圖片
-//        let newImage = UIGraphicsGetImageFromCurrentImageContext()!
-//        
-//        // 結束目前的圖形上下文
-//        UIGraphicsEndImageContext()
-//        
-//        // 將處理後的圖片轉換為像素緩衝區，以供模型輸入使用
-//        guard let pixelBuffer = newImage.toPixelBuffer(pixelFormatType: kCVPixelFormatType_32ARGB, width: 224, height: 224) else {
-//            return
-//        }
-//        
-//        // 使用模型和輸入的像素緩衝區進行預測
-//        guard let prediction = try? model.prediction(image: pixelBuffer) else {
-//            return
-//        }
-//        
-//        // 從預測結果中提取預測的類別標籤
-//        let classLabel = prediction.classLabel
-//        
-//        // 通過移除逗號之後的額外資訊，清理類別標籤
-//        let cleanedLabel = cleanClassLabel(classLabel)
-//        
-//        // 獲取與預測的類別標籤相對應的概率值
-//        let probability = prediction.classLabelProbs[classLabel] ?? 0
-//        
-//        // 將概率值格式化為百分比字串
-//        let formattedProbability = String(format: "%.2f%%", probability * 100)
-//        
-//        // 使用清理後的類別標籤和格式化後的概率值設定預測文字
-//        classificationResult = cleanedLabel
-//        
-//        // 清理類別標籤，通過移除逗號之後的額外資訊（如果存在）
-//        func cleanClassLabel(_ classLabel: String) -> String {
-//            if let commaIndex = classLabel.firstIndex(of: ",") {
-//                return String(classLabel[..<commaIndex])
-//            }
-//            return classLabel
-//        }
-//    }
-//}
-//
-//
-//#Preview {
-//    ContentView()
-//}
-//
-////extension UIImage {
-////    // transform UIImage to CVPixelBuffer
-////    func toPixelBuffer(pixelFormatType: OSType, width: Int, height: Int) -> CVPixelBuffer? {
-////        var pixelBuffer: CVPixelBuffer?
-////        let attrs: [String: NSNumber] = [
-////            kCVPixelBufferCGImageCompatibilityKey as String: NSNumber(booleanLiteral: true),
-////            kCVPixelBufferCGBitmapContextCompatibilityKey as String: NSNumber(booleanLiteral: true)
-////        ]
-////        
-////        // create CVPixelBuffer
-////        let status = CVPixelBufferCreate(kCFAllocatorDefault, width, height, pixelFormatType, attrs as CFDictionary, &pixelBuffer)
-////        
-////        guard status == kCVReturnSuccess else {
-////            return nil
-////        }
-////        
-////        // create CVPixelBuffer Base Address
-////        CVPixelBufferLockBaseAddress(pixelBuffer!, CVPixelBufferLockFlags(rawValue: 0))
-////        let pixelData = CVPixelBufferGetBaseAddress(pixelBuffer!)
-////        
-////        // create CGContext
-////        let rgbColorSpace = CGColorSpaceCreateDeviceRGB()
-////        let context = CGContext(data: pixelData, width: width, height: height, bitsPerComponent: 8, bytesPerRow: CVPixelBufferGetBytesPerRow(pixelBuffer!), space: rgbColorSpace, bitmapInfo: CGImageAlphaInfo.noneSkipFirst.rawValue)
-////        
-////        // adjust axis
-////        context?.translateBy(x: 0, y: CGFloat(height))
-////        context?.scaleBy(x: 1.0, y: -1.0)
-////        
-////        // draw graphics
-////        UIGraphicsPushContext(context!)
-////        draw(in: CGRect(x: 0, y: 0, width: CGFloat(width), height: CGFloat(height)))
-////        UIGraphicsPopContext()
-////        
-////        // adjust base address and return CVPixelBuffer
-////        CVPixelBufferUnlockBaseAddress(pixelBuffer!, CVPixelBufferLockFlags(rawValue: 0))
-////        
-////        return pixelBuffer
-////    }
-////}
+import SwiftUI
+import UserNotifications
+
+struct ChangeDateView: View {
+    @ObservedObject var item: Item
+    @State private var expirationDateInput: String
+    @Environment(\.presentationMode) var presentationMode
+    @FocusState private var showingKeyBoard: Bool
+    @State private var invalidDate = false
+    @State private var saveDate = false
+
+    
+    private let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
+    
+    init(item: Item) {
+        self.item = item
+        self._expirationDateInput = State(initialValue: dateFormatter.string(from: item.expirationDate ?? Date()))
+    }
+
+    var body: some View {
+        VStack{
+            Section(header: Text("Change Expiration Date\n").font(.title2).foregroundStyle(.white)) {  // hex: 0xdee7e7
+                HStack{
+                    Spacer()
+                    
+                    Image(systemName: "pencil")
+                        .foregroundColor(.white)
+                    
+                    TextField("", text: $expirationDateInput)
+                        .focused($showingKeyBoard)
+                        .keyboardType(.numberPad)
+                        .onChange(of: expirationDateInput) {
+                            if expirationDateInput.count > 10 {
+                                expirationDateInput = String(expirationDateInput.prefix(10))
+                            }
+                            var withoutHyphen = String(expirationDateInput.replacingOccurrences(of: "-", with: "").prefix(8))
+                            if withoutHyphen.count > 6 {
+                                withoutHyphen.insert("-", at: expirationDateInput.index(expirationDateInput.startIndex, offsetBy: 6))
+                                expirationDateInput = withoutHyphen
+                            }
+                            if withoutHyphen.count > 4 {
+                                withoutHyphen.insert("-", at: expirationDateInput.index(expirationDateInput.startIndex, offsetBy: 4))
+                                expirationDateInput = withoutHyphen
+                            } else {
+                                expirationDateInput = withoutHyphen
+                            }
+                        }
+                        .placeholder(when: expirationDateInput.isEmpty) {
+                            Text("Enter MM-DD-YYYY")
+                                .multilineTextAlignment(.center)
+                                .foregroundColor(.white)
+                        }
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(.white)
+                    
+                    Spacer()
+                    
+                    DatePicker("", selection: Binding(
+                        get: {
+                            dateFormatter.date(from: expirationDateInput) ?? Date()
+                        },
+                        set: {
+                            expirationDateInput = dateFormatter.string(from: $0)
+                        }
+                    ), displayedComponents: .date)
+                    .datePickerStyle(.compact)
+                    .frame(width: 120)
+                    .colorScheme(.dark)
+                    
+                    Spacer()
+                }
+
+            }
+                .frame(maxWidth: 350)
+            
+            Text("\n")
+                .frame(maxWidth:.infinity)
+
+            Button("Save") {
+                if let date = dateFormatter.date(from: expirationDateInput) {
+                    item.expirationDate = date
+                    expirationDateInput = ""
+                    saveDate = true
+                } else {
+                    invalidDate = true
+                }
+            }
+            .foregroundColor(.white)
+            .alert("Invalid Date", isPresented: $invalidDate){
+                Button("OK"){
+                }
+            }
+            .alert("Change Notification Time", isPresented: $saveDate){
+                Button("Yes"){
+                    // Extract components from the selected notification time
+                    let selectedComponents = Calendar.current.dateComponents([.hour, .minute], from: item.notificationTime ?? Date())
+
+                    // Combine expiration date with the selected time
+                    var calculatedNotificationDate = Calendar.current.date(bySettingHour: selectedComponents.hour ?? 0, minute: selectedComponents.minute ?? 0, second: 0, of: item.expirationDate ?? Date())
+
+                    // Subtract daysPrior days from the calculated date
+                    calculatedNotificationDate = Calendar.current.date(byAdding: .day, value: -item.priordate, to: calculatedNotificationDate ?? Date())
+
+                    // Update the item's notification time
+                    item.notificationTime = calculatedNotificationDate
+
+                    if item.isNotificationEnabled {
+                        scheduleNotification(for: item)
+                    }
+                    presentationMode.wrappedValue.dismiss()
+                }
+                Button("No"){
+                    presentationMode.wrappedValue.dismiss()
+                }
+            } message: {
+                Text("Would you like to change the notification time based on your change?")
+            }
+        }
+        .frame(maxHeight: .infinity*0.4)
+        .background(Color(hex: 0x89a9a9))
+    }
+    
+    private func formattedDate(_ date: Date?) -> String {
+        guard let date = date else {
+            return "Not specified"
+        }
+        
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: date)
+    }
+    
+    private func scheduleNotification(for item: Item) {
+        guard item.isNotificationEnabled,
+              let notificationTime = item.notificationTime else {
+            return
+        }
+
+        let content = UNMutableNotificationContent()
+        content.title = "eStorage Notification"
+        content.body = "\(item.name) will expire soon."
+
+        let components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: notificationTime)
+        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+        let request = UNNotificationRequest(identifier: item.id.uuidString, content: content, trigger: trigger)
+
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("Error scheduling notification: \(error.localizedDescription)")
+            } else {
+                print("Notification scheduled successfully.")
+            }
+        }
+    }
+
+}
+

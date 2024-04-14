@@ -12,6 +12,7 @@ struct AddItemView: View {
     @State private var showingDatePicker = false
     @State private var isShowingCameraView = false
     @State private var confirmAdd = false
+    @State private var noItemName = false
     @State private var resfromtext=""
     @State private var showingBarcodeScanner = false
     @FocusState private var showingKeyBoard: Bool
@@ -149,7 +150,7 @@ struct AddItemView: View {
                                 }
                             }
                             .placeholder(when: expirationDateInput.isEmpty) {
-                                Text("Expiration Date (YYYYMMDD)")
+                                Text("Expiration Date (MMDDYYYY)")
                                     .multilineTextAlignment(.center)
                                     .foregroundColor(.gray)
                             }
@@ -208,22 +209,31 @@ struct AddItemView: View {
                     }
                     
                     Button("Confirm", action: {
-                        let newItem = createItem()
-                        onAdd(newItem)
-                        
-                        // Save the new item to UserDefaults
-                        saveItemToUserDefaults(newItem)
-                        
-                        // Dismiss the view
-                        presentationMode.wrappedValue.dismiss()
-                        
-                        confirmAdd = true
+                        if itemName == ""{
+                            noItemName = true
+                        }
+                        else{
+                            let newItem = createItem()
+                            onAdd(newItem)
+                            
+                            // Save the new item to UserDefaults
+                            saveItemToUserDefaults(newItem)
+                            
+                            // Dismiss the view
+                            presentationMode.wrappedValue.dismiss()
+                            
+                            confirmAdd = true
+                        }
                     })
                     .frame(width: 120, height: 45)
                     .foregroundColor(Color(hex: 0xdee7e7))
                     .background(Color(hex: 0x7f949f))
                     .cornerRadius(10)
                     .padding(30)
+                    .alert("Missing Item Name", isPresented: $noItemName){
+                        Button("OK"){
+                        }
+                    }
                     .alert("Item Added Successfully", isPresented: $confirmAdd){
                         Button("OK"){
                             itemName = ""
@@ -283,7 +293,6 @@ struct AddItemView: View {
                 }
             }
         }
-
         return Item(name: itemName, expirationDate: Calendar.current.date(from: components))
     }
     
@@ -435,9 +444,7 @@ struct AddItemView: View {
                                                               self.itemName = self.resfromtext
                                                           }
                                                       }
-        
                           }
-                          
                       } catch {
                           print("Error decoding response from GPT-3.5 API: \(error)")
                       }
@@ -535,7 +542,7 @@ struct AddItemView: View {
         let probability = prediction.classLabelProbs[classLabel] ?? 0
         
         // 將概率值格式化為百分比字串
-        let formattedProbability = String(format: "%.2f%%", probability * 100)
+//        _ = String(format: "%.2f%%", probability * 100)
         
         // 使用清理後的類別標籤和格式化後的概率值設定預測文字
 //        classificationResult = cleanedLabel
@@ -575,17 +582,11 @@ private let dateFormatter: DateFormatter = {
 extension View {
     func placeholder<Content: View>(
         when shouldShow: Bool,
-//        alignment: Alignment = .leading,
         @ViewBuilder placeholder: () -> Content) -> some View {
             ZStack() {
                 placeholder().opacity(shouldShow ? 1 : 0)
                 self
             }
-
-//        ZStack(alignment: alignment) {
-//            placeholder().opacity(shouldShow ? 1 : 0)
-//            self
-//        }
         }
 }
 

@@ -14,10 +14,12 @@ struct NotificationSettingView: View {
 
     var body: some View {
         VStack{
-            Section(header: Text("Notification Settings\n").font(.title2)) {
+            Section(header: Text("Notification Settings\n").font(.title2).foregroundStyle(.white)) {  // hex: 0xdee7e7
                 Stepper(value: $daysPrior, in: 0...30, step: 1) {
                     Text("Notify \(daysPrior) Days Prior to Expiration")
+                        .foregroundStyle(.white)
                 }
+                    .colorScheme(.dark)
                 
                 Text("")
 
@@ -26,6 +28,7 @@ struct NotificationSettingView: View {
                         .onAppear {
                             self.selectedNotificationDate = notificationTime
                         }
+                        .colorScheme(.dark)
                 }
             }
                 .frame(maxWidth: 350)
