@@ -150,7 +150,7 @@ struct AddItemView: View {
                                 }
                             }
                             .placeholder(when: expirationDateInput.isEmpty) {
-                                Text("Expiration Date (MMDDYYYY)")
+                                Text("Expiration Date (YYYYMMDD)")
                                     .multilineTextAlignment(.center)
                                     .foregroundColor(.gray)
                             }
