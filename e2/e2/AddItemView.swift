@@ -18,6 +18,8 @@ struct AddItemView: View {
     @State private var resfromtext=""
     @State private var showingBarcodeScanner = false
     @FocusState private var showingKeyBoard: Bool
+    @State private var isLoading_product = false
+    @State private var isLoading_date = false
 
     @State private var imageCapture : UIImage?
     @State private var showSheet = false
@@ -41,21 +43,30 @@ struct AddItemView: View {
                     
                     Color.clear.frame(height: 20)
                     
-                    TextField("", text: $itemName)
-                        .focused($showingKeyBoard)
-                        .placeholder(when: itemName.isEmpty) {
-                            Text("Item Name")
-                                .multilineTextAlignment(.center)
-                                .foregroundColor(.gray)
-                        }
-                        .onChange(of: itemName) {
-                            if itemName.count > 40 {
-                                itemName = String(itemName.prefix(40))
+                    HStack{
+                        TextField("", text: $itemName)
+                            .focused($showingKeyBoard)
+                            .placeholder(when: itemName.isEmpty) {
+                                Text("Item Name")
+                                    .multilineTextAlignment(.center)
+                                    .foregroundColor(.gray)
                             }
+                            .onChange(of: itemName) {
+                                if itemName.count > 40 {
+                                    itemName = String(itemName.prefix(40))
+                                }
+                            }
+                            .multilineTextAlignment(.center)
+                            .foregroundColor(Color(hex: 0x535657))
+                        
+                        if isLoading_product {
+                                ProgressView()  // This shows a spinner
+                                    .progressViewStyle(CircularProgressViewStyle())
+                                    .scaleEffect(1.5)
                         }
-                        .multilineTextAlignment(.center)
-                        .foregroundColor(Color(hex: 0x535657))
-                        .padding()
+                    }
+                    .padding()
+                
 
                     HStack{
                         Button(action: {
@@ -158,6 +169,12 @@ struct AddItemView: View {
                             }
                             .multilineTextAlignment(.center)
                             .foregroundColor(Color(hex: 0x535657))
+                        
+                        if isLoading_date {
+                                ProgressView()  // This shows a spinner
+                                    .progressViewStyle(CircularProgressViewStyle())
+                                    .scaleEffect(1.5)
+                        }
                     }
                     .padding()
                     
@@ -300,6 +317,8 @@ struct AddItemView: View {
     
     
     private func gptVision(image: UIImage?) {
+        isLoading_product = true
+        
         print("GPT 4 Vision")
         
         guard let imageCapture = imageCapture else {
@@ -354,6 +373,8 @@ struct AddItemView: View {
         }
 
         URLSession.shared.dataTask(with: request) { data, response, error in
+            defer { isLoading_product = false }
+            
             if let error = error {
                 print("Error calling GPT API: \(error)")
                 return
@@ -382,6 +403,8 @@ struct AddItemView: View {
       }
 
     private func generateResponse(prompt: String, text: String) {
+        if classifyDate{ isLoading_date = true}
+        else {isLoading_product = true}
         let p = "\(prompt) here is the text string(\(text))"
         print(p)
         
@@ -412,6 +435,9 @@ struct AddItemView: View {
         }
 
         URLSession.shared.dataTask(with: request) { data, response, error in
+            defer { isLoading_product = false }
+            defer { isLoading_date = false }
+            
             if let error = error {
                 print("Error calling GPT API: \(error)")
                 return
