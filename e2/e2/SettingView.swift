@@ -12,35 +12,48 @@ import Foundation
 
 
 class SettingDefault: ObservableObject {
-    @Published var default_prior_day: Int = 0//{
-//        didSet {setsave()}
-//    }
-    @Published var default_enable_notify: Bool = false//{
-//        didSet {setsave()}
-//    }
-    @Published var default_notify_time: Date = Date().midnight()//{
-//        didSet {setsave()}
-//    }
+    @Published var default_prior_day: Int = 0{
+        didSet {setsave()}
+    }
+    @Published var default_enable_notify: Bool = false{
+        didSet {setsave()}
+    }
+    @Published var default_notify_time: Date = Date().midnight(){
+        didSet {setsave()}
+    }
     
-//    private let defaults = UserDefaults.standard
-//        
+    private let defaults = UserDefaults.standard
+    private let notifyTimeKey = "default_notify_time"
+    private let priorDayKey = "default_prior_day"
+    private let enableNotifyKey = "default_enable_notify"
+        
 //    init() {
 //        setload()  // Load settings when the object is initialized
-//    }
-//    
-//    func setsave() {
-//        let encoder = JSONEncoder()
-//        if let encoded = try? encoder.encode(default_prior_day) {
-//            defaults.set(encoded, forKey: "default_prior_day")
-//        }
-//        defaults.set(default_enable_notify, forKey: "default_enable_notify")
 //        
-//        if let encodedTime = try? encoder.encode(default_notify_time) {
-//            defaults.set(encodedTime, forKey: "default_notify_time")
-//        }
 //    }
-//        
-//    func setload() {
+    init() {
+        default_prior_day = defaults.integer(forKey: priorDayKey)
+        default_enable_notify = defaults.bool(forKey: enableNotifyKey)
+        
+        if let data = defaults.data(forKey: notifyTimeKey),
+            let date = try? JSONDecoder().decode(Date.self, from: data) {
+            default_notify_time = date
+        } else {
+            default_notify_time = Date().midnight() // Define your midnight method or use a default value
+        }
+    }
+    
+    private func setsave() {
+        print("save")
+        defaults.set(default_prior_day, forKey: priorDayKey)
+        defaults.set(default_enable_notify, forKey: enableNotifyKey)
+        
+        if let data = try? JSONEncoder().encode(default_notify_time) {
+            defaults.set(data, forKey: notifyTimeKey)
+        }
+    }
+        
+//    private func setload() {
 //        if let priorDayData = defaults.data(forKey: "default_prior_day"),
 //            let day = try? JSONDecoder().decode(Int.self, from: priorDayData) {
 //            default_prior_day = day
