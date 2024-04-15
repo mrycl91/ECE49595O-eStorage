@@ -84,7 +84,7 @@ struct SettingView: View {
             
             Color.clear.frame(height: 20)
             
-            Text("       Default Settings")
+            Text("       Default Notification Settings")
                 .font(.system(size:16, weight: .bold))
                 .foregroundColor(Color(hex: 0x535657))
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -106,9 +106,6 @@ struct SettingView: View {
                 DatePicker("", selection: $notificationTimeDef, displayedComponents: .hourAndMinute)
                     .onChange(of: notificationTimeDef) {
                         settingDefault.default_notify_time = notificationTimeDef
-                    }
-                    .onChange(of: settingDefault.default_enable_notify){
-                        notificationTimeDef = settingDefault.default_notify_time
                     }
                     .onAppear {
                         settingDefault.default_notify_time = notificationTimeDef
@@ -146,7 +143,7 @@ struct SettingView: View {
             //                .padding()
             //                .padding()
             
-            Text("       Default Settings and Previous Record")
+            Text("       Existing Items Notification Settings")
                 .font(.system(size:16, weight: .bold))
                 .foregroundColor(Color(hex: 0x535657))
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -158,7 +155,7 @@ struct SettingView: View {
             }
                 .padding()
                 .onChange(of: enableNotifyAll) {
-                    settingDefault.default_enable_notify = enableNotifyAll
+//                    settingDefault.default_enable_notify = enableNotifyAll
                     if enableNotifyAllFlag{
                         if enableNotifyAll {
                             for item in items{
@@ -176,17 +173,17 @@ struct SettingView: View {
                         enableNotifyAllFlag = true
                     }
                 }
-                .onChange(of: settingDefault.default_enable_notify){
-                    if enableNotifyAll == true {
-                        if settingDefault.default_enable_notify == false{
-                            enableNotifyAll = false
-                            enableNotifyAllFlag = false
-                        }
-                    }
-                }
+//                .onChange(of: settingDefault.default_enable_notify){
+//                    if enableNotifyAll == true {
+//                        if settingDefault.default_enable_notify == false{
+//                            enableNotifyAll = false
+//                            enableNotifyAllFlag = false
+//                        }
+//                    }
+//                }
             
             HStack{
-                Text("All Items Notifying Time")
+                Text("Existing Items Notify at " + self.formattedTime(for: notificationTimeAll))
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .foregroundColor(Color(hex: 0x535657))
                     .padding(.horizontal)
@@ -194,7 +191,7 @@ struct SettingView: View {
                 
                 DatePicker("", selection: $notificationTimeAll, displayedComponents: .hourAndMinute)
                     .onChange(of: notificationTimeAll){
-                        settingDefault.default_notify_time = notificationTimeAll
+//                        settingDefault.default_notify_time = notificationTimeAll
                         for item in items{
                             let selectedComponents = Calendar.current.dateComponents([.hour, .minute], from: notificationTimeAll )
 
@@ -202,7 +199,7 @@ struct SettingView: View {
                             var calculatedNotificationDate = Calendar.current.date(bySettingHour: selectedComponents.hour ?? 0, minute: selectedComponents.minute ?? 0, second: 0, of: item.expirationDate ?? Date())
 
                             // Subtract daysPrior days from the calculated date
-                            calculatedNotificationDate = Calendar.current.date(byAdding: .day, value: -settingDefault.default_prior_day, to: calculatedNotificationDate ?? Date())
+                            calculatedNotificationDate = Calendar.current.date(byAdding: .day, value: -item.priordate, to: calculatedNotificationDate ?? Date())
 
                             // Update the item's notification time
                             item.notificationTime = calculatedNotificationDate
@@ -228,9 +225,9 @@ struct SettingView: View {
                     .padding(.leading)
             }
                 .onChange(of: priorDayAll){
-                    settingDefault.default_prior_day = priorDayAll
+//                    settingDefault.default_prior_day = priorDayAll
                     for item in items{
-                        let selectedComponents = Calendar.current.dateComponents([.hour, .minute], from: settingDefault.default_notify_time )
+                        let selectedComponents = Calendar.current.dateComponents([.hour, .minute], from: item.notificationTime ?? settingDefault.default_notify_time )
 
                         // Combine expiration date with the selected time
                         var calculatedNotificationDate = Calendar.current.date(bySettingHour: selectedComponents.hour ?? 0, minute: selectedComponents.minute ?? 0, second: 0, of: item.expirationDate ?? Date())
@@ -251,16 +248,16 @@ struct SettingView: View {
                 .frame(maxWidth: .infinity)
                 .colorScheme(.light)
             
-            if settingDefault.default_enable_notify{
-                Text("Notify \(settingDefault.default_prior_day) Days Prior to Expiration\n\(settingDefault.default_notify_time)\n is enabled")
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .foregroundColor(Color(hex: 0x535657))
-            }
-            else{
-                Text("Notify \(settingDefault.default_prior_day) Days Prior to Expiration\n\(settingDefault.default_notify_time)\n is not enabled")
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .foregroundColor(Color(hex: 0x535657))
-            }
+//            if settingDefault.default_enable_notify{
+//                Text("Notify \(settingDefault.default_prior_day) Days Prior to Expiration\n\(settingDefault.default_notify_time)\n is enabled")
+//                    .frame(maxWidth: .infinity, alignment: .leading)
+//                    .foregroundColor(Color(hex: 0x535657))
+//            }
+//            else{
+//                Text("Notify \(settingDefault.default_prior_day) Days Prior to Expiration\n\(settingDefault.default_notify_time)\n is not enabled")
+//                    .frame(maxWidth: .infinity, alignment: .leading)
+//                    .foregroundColor(Color(hex: 0x535657))
+//            }
                                
             Spacer()
         }
