@@ -4,6 +4,8 @@ import CoreML
 import Foundation
 
 struct AddItemView: View {
+    @EnvironmentObject var settingDefault: SettingDefault
+
     var onAdd: (Item) -> Void
     @Environment(\.presentationMode) var presentationMode
     
@@ -293,7 +295,7 @@ struct AddItemView: View {
                 }
             }
         }
-        return Item(name: itemName, expirationDate: Calendar.current.date(from: components))
+        return Item(name: itemName, expirationDate: Calendar.current.date(from: components), notifyTime: settingDefault.default_notify_time, ifEnable: settingDefault.default_enable_notify, priorDay: settingDefault.default_prior_day)
     }
     
     

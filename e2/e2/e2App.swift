@@ -4,9 +4,12 @@ import UserNotifications
 @main
 
 struct e2App: App {
+    var settings = SettingDefault()
+    
     var body: some Scene {
         WindowGroup {
             MainView()
+                .environmentObject(settings)
                 .onAppear(perform: {
                     let defaults = UserDefaults.standard
                     if defaults.bool(forKey: "NotificationPermissionRequested") == false {

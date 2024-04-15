@@ -15,6 +15,7 @@ enum MealType: String, CaseIterable {
 }
 
 struct MainView: View {
+    @EnvironmentObject var settingDefault: SettingDefault
     @State private var items: [Item] = []
     @State private var selectedMealType: MealType?
     @State private var recommendationContent: String?
@@ -39,13 +40,14 @@ struct MainView: View {
                     .tabItem {
                         Label("Recipe", systemImage: "book.pages.fill")
                     }
-//                SettingView()
-//                    .tabItem {
-//                        Label("Settings", systemImage: "gearshape")
-//                    }
+                SettingView(items: $items)
+                    .tabItem {
+                        Label("Settings", systemImage: "gearshape")
+                    }
             }
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)){ _ in
                 saveItems()
+//                settingDefault.setsave()
             }
     }
     
