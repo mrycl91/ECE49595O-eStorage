@@ -121,7 +121,7 @@ struct AddItemView: View {
                             if classifyText{
                                 performTextRecognition(image: image)
                             } else{
-                                processImage(image: image)
+                                //processImage(image: image)
                                 gptVision(image: image)
                             }
                         }
@@ -314,7 +314,7 @@ struct AddItemView: View {
         
         let base64_image = pngImage.base64EncodedString()
       
-        let prompt = "What is the item name in the picture, it should related to food or groceries. "
+        let prompt = "What is the item name in the picture, it should related to food or groceries. Please just give me the name of the item."
 
         let requestData: [String: Any] = [
             "model": "gpt-4-vision-preview",
@@ -369,6 +369,7 @@ struct AddItemView: View {
                           let json = try JSONSerialization.jsonObject(with: responseData, options: []) as? [String: Any]
                           if let choices = json?["choices"] as? [[String: Any]], let firstChoice = choices.first, let message = firstChoice["message"] as? [String: Any], let content = message["content"] as? String {
                               classificationResult = content
+                              self.itemName = content
                           }
                       } catch {
                           print("Error decoding response from GPT-3.5 API: \(error)")
@@ -385,15 +386,15 @@ struct AddItemView: View {
         print(p)
         
         let requestData: [String: Any] = [
-            //"model": "gpt-3.5-turbo",
-            "model": "gpt-4",
+            "model": "gpt-3.5-turbo",
+            //"model": "gpt-4",
             "messages": [
                 [
                     "role": "user",
                     "content": p
                 ]
             ],
-            "max_tokens": 300
+            "max_tokens": 30
         ]
 
         let apiKey = ProcessInfo.processInfo.environment["GPT_APIKEY"] ?? ""
