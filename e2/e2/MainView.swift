@@ -49,6 +49,7 @@ struct MainView: View {
                 saveItems()
 //                settingDefault.setsave()
             }
+            .colorScheme(.light)
     }
     
     private func loadItems() {
@@ -150,24 +151,17 @@ struct MealTypeSelectionView: View {
                     ScrollView{
                         Text(recommendationContent)
                             .padding()
+                            .foregroundColor(Color(hex: 0xdee7e7))
                             .multilineTextAlignment(.leading)
-                        Button(action: {
+                        Button("Generate New Recipe", action: {
                             isLoading = false
                             decisionMade = false
-                        }) {
-                            Text("Generate New Recipe")
-                                .fontWeight(.semibold)
-                                .foregroundColor(Color(hex: 0xdee7e7))
-                                .frame(width: 200, height: 30)
-                                .background(
-                                    RoundedRectangle(
-                                        cornerRadius: 10,
-                                        style: .continuous
-                                    )
-                                        .fill(Color(hex: 0x89a9a9))
-                                        .stroke(Color(hex: 0x89a9a9), lineWidth: 2)
-                                )
-                        }
+                        })
+                            .frame(width: 200, height: 45)
+                            .foregroundColor(Color(hex: 0xdee7e7))
+                            .background(Color(hex: 0x89a9a9))
+                            .cornerRadius(10)
+                            .padding(30)
                         Text("\n")
                     }
                 } else if isLoading {

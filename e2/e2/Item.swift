@@ -67,6 +67,8 @@ class Item: Identifiable, ObservableObject, Equatable, Codable {
     }
     
     private func scheduleNotification(for item: Item) {
+        print("schedule Item")
+        
         guard item.isNotificationEnabled,
               let notificationTime = item.notificationTime else {
             return

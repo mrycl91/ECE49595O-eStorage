@@ -127,6 +127,7 @@ struct ItemDetailView: View {
     }
 
     private func scheduleNotification(for item: Item) {
+        print("schedule itemDetail")
         guard item.isNotificationEnabled,
               let notificationTime = item.notificationTime else {
             return

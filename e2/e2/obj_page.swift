@@ -110,6 +110,7 @@ struct ChangeDateView: View {
                     item.notificationTime = calculatedNotificationDate
 
                     if item.isNotificationEnabled {
+                        removeScheduledNotification(for: item)
                         scheduleNotification(for: item)
                     }
                     presentationMode.wrappedValue.dismiss()
@@ -135,7 +136,14 @@ struct ChangeDateView: View {
         return formatter.string(from: date)
     }
     
+    private func removeScheduledNotification(for item: Item) {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [item.id.uuidString])
+        print("Notification removed successfully.")
+    }
+    
     private func scheduleNotification(for item: Item) {
+        print("schedule obj_page")
+        
         guard item.isNotificationEnabled,
               let notificationTime = item.notificationTime else {
             return

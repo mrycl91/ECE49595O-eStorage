@@ -268,6 +268,8 @@ struct SettingView: View {
     }
     
     private func scheduleNotification(for item: Item) {
+        print("setting schedule")
+        
         guard item.isNotificationEnabled,
               let notificationTime = item.notificationTime else {
             return
