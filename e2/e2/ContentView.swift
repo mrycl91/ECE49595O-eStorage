@@ -10,43 +10,55 @@ struct ContentView: View {
     @State private var showingDeleteAlert = false
     @State private var showingALLDeleteAlert = false
     @State private var boolitem: Item?
+    @State private var searchText = ""
 
     // Key for UserDefaults
     private let itemsKey = "StoredItemsKey"
 
     var body: some View {
-        VStack{
-            GeometryReader { proxy in
-                VStack{
-                    HStack{
-                        Text("Grocery Lists")
-                            .font(.system(size:26, weight: .bold))
-                            .position(x: 110, y: 60)
-                            .foregroundColor(Color(hex: 0x535657))
-                        ZStack(alignment: .topTrailing){
-                            Path { path in
-                                path.move(to: CGPoint(x:proxy.size.width/2, y:0))
-                                path.addArc(
-                                    center: CGPoint(x:proxy.size.width/2, y:0),
-                                    radius: 110,
-                                    startAngle: Angle(degrees: 90),
-                                    endAngle: Angle(degrees: 180),
-                                    clockwise: false
-                                )
-                                path.closeSubpath()
-                            }
-                                .fill(Color(hex: 0x535657))
-                            
-                            Button(action: {
-                                showingALLDeleteAlert = true
-                            }, label: {
-                                Text("Delete\n       All")
-                                    .foregroundColor(Color(hex: 0xf4faff))
-                                    .padding(23)
-                                    .alignmentGuide(.top){ dimension in
-                                        dimension[.top]
+            VStack{
+                GeometryReader { proxy in
+                    VStack{
+                        HStack{
+                            VStack {
+                                Text("Grocery Lists")
+                                    .font(.system(size:26, weight: .bold))
+                                    .position(x: 110, y: 30)
+                                    .foregroundColor(Color(hex: 0x535657))
+                                TextField("Search", text: $searchText)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    .padding(.horizontal)
+                                    .frame(width: 200)
+                                    .onChange(of: searchText) { _ in
+                                        // React to search text changes
+                                        // Maybe update your filtered items here
                                     }
-                            })
+                            }
+                            Spacer()
+                            ZStack(alignment: .topTrailing){
+                                Path { path in
+                                    path.move(to: CGPoint(x:proxy.size.width/2, y:0))
+                                    path.addArc(
+                                        center: CGPoint(x:proxy.size.width/2, y:0),
+                                        radius: 110,
+                                        startAngle: Angle(degrees: 90),
+                                        endAngle: Angle(degrees: 180),
+                                        clockwise: false
+                                    )
+                                    path.closeSubpath()
+                                }
+                                .fill(Color(hex: 0x535657))
+                                
+                                Button(action: {
+                                    showingALLDeleteAlert = true
+                                }, label: {
+                                    Text("Delete\n       All")
+                                        .foregroundColor(Color(hex: 0xf4faff))
+                                        .padding(23)
+                                        .alignmentGuide(.top){ dimension in
+                                            dimension[.top]
+                                        }
+                                })
                                 .alert(isPresented: $showingALLDeleteAlert) {
                                     Alert(
                                         title: Text("Delete Expired Item"), message: Text("Confirm deletion of all expired items?"),
@@ -59,35 +71,35 @@ struct ContentView: View {
                                         }
                                     )
                                 }
-                        }
-                    }
-                    .frame(height: proxy.size.height/6)
-                    
-                    List {
-                        ForEach(items.indices, id: \.self) { index in
-                            HStack {
-                                VStack(alignment: .leading) {
-                                    Text(" \(items[index].name)")
-                                        .foregroundColor(isItemExpired(items[index].expirationDate) ? .red : Color(hex: 0x535657))
-                                    if let expirationDate = items[index].expirationDate {
-                                        Text("  Best by \(formattedDate(expirationDate))")
-                                            .foregroundColor(isItemExpired(expirationDate) ? .red : Color(hex: 0x535657))
-                                    }
-                                }
-                                Spacer()
                             }
+                        }
+                        .frame(height: proxy.size.height/6)
+                        
+                        List {
+                            ForEach(filteredItems) { item in
+                                HStack {
+                                    VStack(alignment: .leading) {
+                                        Text(" \(item.name)")
+                                            .foregroundColor(isItemExpired(item.expirationDate) ? .red : Color(hex: 0x535657))
+                                        if let expirationDate = item.expirationDate {
+                                            Text("  Best by \(formattedDate(expirationDate))")
+                                                .foregroundColor(isItemExpired(expirationDate) ? .red : Color(hex: 0x535657))
+                                        }
+                                    }
+                                    Spacer()
+                                }
                                 .contentShape(Rectangle())
                                 .onTapGesture {
-                                    selectedItem = items[index]
-                                    boolitem = items[index]
+                                    selectedItem = item
+                                    boolitem = item
                                 }
                                 .sheet(item: $boolitem){ boolitem in
                                     ItemDetailView(item: boolitem)
                                 }
-                        }
+                            }
                             .onDelete(perform: deleteItems)
                             .listRowBackground(Color(hex: 0xdee7e7))
-                    }
+                        }
                         .listStyle(.plain)
                         .alert(isPresented: $showingDeleteAlert) {
                             Alert(
@@ -99,15 +111,26 @@ struct ContentView: View {
                             )
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                }
-                .alignmentGuide(.bottom){ dimension in
-                    dimension[.bottom]
+                    }
+                    .alignmentGuide(.bottom){ dimension in
+                        dimension[.bottom]
+                    }
                 }
             }
+            .onTapGesture {
+           
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            }
+            .background(Color(hex: 0xdee7e7))
         }
-        .background(Color(hex: 0xdee7e7))
-    }
-
+    private var filteredItems: [Item] {
+           if searchText.isEmpty {
+               return items
+           } else {
+               return items.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+           }
+       }
+    
     private func deleteItems(at offsets: IndexSet) {
         selectedItem = items[offsets.first ?? 0]
         showingDeleteAlert = true
