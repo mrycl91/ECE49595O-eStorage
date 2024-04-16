@@ -11,7 +11,7 @@ import SwiftUI
 import Foundation
 
 
-class SettingDefault: ObservableObject {
+class SettingDefault: ObservableObject, Codable {
     @Published var default_prior_day: Int = 0{
         didSet {setsave()}
     }
@@ -38,18 +38,66 @@ class SettingDefault: ObservableObject {
         if let data = defaults.data(forKey: notifyTimeKey),
             let date = try? JSONDecoder().decode(Date.self, from: data) {
             default_notify_time = date
+            
+            print(default_notify_time)
         } else {
             default_notify_time = Date().midnight() // Define your midnight method or use a default value
         }
     }
+    
+    enum CodingKeys: String, CodingKey {
+            case default_prior_day, default_enable_notify, default_notify_time
+        }
+
+        required init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+
+            default_prior_day = try container.decode(Int.self, forKey: .default_prior_day)
+            default_enable_notify = try container.decode(Bool.self, forKey: .default_enable_notify)
+            default_notify_time = try container.decode(Date.self, forKey: .default_notify_time)
+        }
+
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+
+            try container.encode(default_prior_day, forKey: .default_prior_day)
+            try container.encode(default_enable_notify, forKey: .default_enable_notify)
+            try container.encode(default_notify_time, forKey: .default_notify_time)
+        }
     
     private func setsave() {
         print("save")
         defaults.set(default_prior_day, forKey: priorDayKey)
         defaults.set(default_enable_notify, forKey: enableNotifyKey)
         
-        if let data = try? JSONEncoder().encode(default_notify_time) {
-            defaults.set(data, forKey: notifyTimeKey)
+//        if let data = try? JSONEncoder().encode(default_notify_time) {
+//            defaults.set(data, forKey: notifyTimeKey)
+//        }
+    }
+    
+    func loadSettings() {
+            if let data = UserDefaults.standard.data(forKey: "notificationSetting") {
+                if let decodedSetting = try? JSONDecoder().decode(SettingDefault.self, from: data) {
+                    // Update the properties with the loaded settings
+                    self.default_prior_day = decodedSetting.default_prior_day
+                    self.default_enable_notify = decodedSetting.default_enable_notify
+                    self.default_notify_time = decodedSetting.default_notify_time
+                    print(self.default_prior_day)
+                    print(self.default_enable_notify)
+                    print(self.default_notify_time)
+                    print("++++++++++++++++")
+                }
+            }
+        }
+        
+        // Save settings
+    func saveSettings() {
+        if let encodedSetting = try? JSONEncoder().encode(self) {
+            print(self.default_prior_day)
+            print(self.default_enable_notify)
+            print(self.default_notify_time)
+            print("------------------------")
+            UserDefaults.standard.set(encodedSetting, forKey: "notificationSetting")
         }
     }
         
@@ -72,21 +120,24 @@ struct SettingView: View {
     @Binding var items: [Item]
     @EnvironmentObject var settingDefault: SettingDefault
 //    @State private var timeString: String = ""
-    @State private var notificationTimeDef: Date
-    @State private var notificationTimeAll: Date
+    @State private var notificationTimeDef:Date=Date()
+    @State private var notificationTimeAll:Date=Date()
     @State private var enableNotifyAll: Bool = false
     @State private var enableNotifyAllFlag: Bool = true
     @State private var priorDayAll: Int = 0
     
     init(items: Binding<[Item]>) {
         _items = items
-        _notificationTimeDef = State(initialValue: Date())  // Initialize with a dummy value
-        _notificationTimeAll = State(initialValue: Date())  // Initialize with a dummy value
+//        _notificationTimeDef = State(initialValue: Date())  // Initialize with a dummy value
+//        _notificationTimeAll = State(initialValue: Date())  // Initialize with a dummy value
     }
 
     
     var body: some View {
+        
+        
         VStack{
+            
             Color.clear.frame(height: 20)
             
             Text("     Settings")
@@ -226,6 +277,7 @@ struct SettingView: View {
                     .onAppear {
                         settingDefault.default_notify_time = notificationTimeAll
                     }
+                   
                     .frame(width: 100)
                     .padding(.trailing)
                     .colorScheme(.dark)
@@ -275,9 +327,20 @@ struct SettingView: View {
             Spacer()
         }
         .background(Color(hex: 0xdee7e7))
-//        .onAppear(){
-//            settingDefault.setload()
-//        }
+        .onAppear{
+            settingDefault.loadSettings()
+            self.notificationTimeDef=settingDefault.default_notify_time
+//            self.notificationTimeAll=settingDefault.default_notify_time
+            
+        }
+        .onDisappear{
+            settingDefault.saveSettings()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)){ _ in
+            settingDefault.saveSettings()
+        }
+
+
     }
     
     private func scheduleNotification(for item: Item) {
