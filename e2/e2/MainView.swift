@@ -376,10 +376,12 @@ struct MealTypeSelectionView: View {
                         .frame(width: 200, height: 45)
                         .background(
                             RoundedRectangle(cornerRadius: 10)
-                                .fill(Color(hex: 0x89a9a9))
+                                .fill(Color(hex: 0x7f949f))
                         )
                 }
                 .padding(.bottom)
+                
+                Spacer()
             }
         }
         .sheet(isPresented: $showingFavoriteRecipes) {
