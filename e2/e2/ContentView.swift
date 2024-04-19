@@ -29,10 +29,7 @@ struct ContentView: View {
                                     .textFieldStyle(RoundedBorderTextFieldStyle())
                                     .padding(.horizontal)
                                     .frame(width: 200)
-                                    .onChange(of: searchText) { _ in
-                                        // React to search text changes
-                                        // Maybe update your filtered items here
-                                    }
+                                    .onChange(of: searchText) { _,_ in}
                             }
                             Spacer()
                             ZStack(alignment: .topTrailing){
@@ -117,10 +114,10 @@ struct ContentView: View {
                     }
                 }
             }
-            .onTapGesture {
-           
-                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-            }
+//            .onTapGesture {
+//           
+//                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+//            }
             .background(Color(hex: 0xdee7e7))
         }
     private var filteredItems: [Item] {
