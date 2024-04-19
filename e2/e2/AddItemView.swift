@@ -273,10 +273,10 @@ struct AddItemView: View {
                 .textFieldStyle(.automatic)
             }
         }
-        .onTapGesture {
-            // Dismiss the keyboard when tapping on a blank space
-            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-        }
+//        .onTapGesture {
+//            // Dismiss the keyboard when tapping on a blank space
+//            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+//        }
         .background(Color(hex: 0xdee7e7))
         .gesture(DragGesture(minimumDistance: 3.0, coordinateSpace: .local)
             .onEnded { value in
