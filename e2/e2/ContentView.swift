@@ -139,6 +139,9 @@ struct ContentView: View {
            let index = items.firstIndex(where: { $0.id == selectedItem.id }) {
             items.remove(at: index)
         }
+        if let encodedData = try? JSONEncoder().encode(items) {
+            UserDefaults.standard.set(encodedData, forKey: itemsKey)
+        }
         selectedItem = nil
     }
 
