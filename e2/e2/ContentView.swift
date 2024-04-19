@@ -11,6 +11,7 @@ struct ContentView: View {
     @State private var showingALLDeleteAlert = false
     @State private var boolitem: Item?
     @State private var searchText = ""
+    @FocusState private var showingKeyBoard: Bool
 
     // Key for UserDefaults
     private let itemsKey = "StoredItemsKey"
@@ -20,18 +21,13 @@ struct ContentView: View {
                 GeometryReader { proxy in
                     VStack{
                         HStack{
-                            VStack {
-                                Text("Grocery Lists")
-                                    .font(.system(size:26, weight: .bold))
-                                    .position(x: 110, y: 30)
-                                    .foregroundColor(Color(hex: 0x535657))
-                                TextField("Search", text: $searchText)
-                                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    .padding(.horizontal)
-                                    .frame(width: 200)
-                                    .onChange(of: searchText) { _,_ in}
-                            }
+                            Text("Grocery Lists")
+                                .font(.system(size:26, weight: .bold))
+                                .position(x: 110, y: 60)
+                                .foregroundColor(Color(hex: 0x535657))
+
                             Spacer()
+                            
                             ZStack(alignment: .topTrailing){
                                 Path { path in
                                     path.move(to: CGPoint(x:proxy.size.width/2, y:0))
@@ -71,6 +67,13 @@ struct ContentView: View {
                             }
                         }
                         .frame(height: proxy.size.height/6)
+                        
+                        TextField(" Search", text: $searchText)
+                            .focused($showingKeyBoard)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .padding(.horizontal)
+                            .frame(maxWidth: .infinity)
+                            .onChange(of: searchText) { _,_ in}
                         
                         List {
                             ForEach(filteredItems) { item in
@@ -118,6 +121,17 @@ struct ContentView: View {
 //           
 //                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
 //            }
+            .gesture(DragGesture(minimumDistance: 3.0, coordinateSpace: .local)
+                .onEnded { value in
+                    print(value.translation)
+                    switch(value.translation.width, value.translation.height) {
+                        case (-100...100, 0...):
+                            showingKeyBoard = false
+                        default:  print("no clue")
+                    }
+                }
+            )
+            .scrollDismissesKeyboard(.interactively)
             .background(Color(hex: 0xdee7e7))
         }
     private var filteredItems: [Item] {
@@ -138,9 +152,6 @@ struct ContentView: View {
         if let selectedItem = selectedItem,
            let index = items.firstIndex(where: { $0.id == selectedItem.id }) {
             items.remove(at: index)
-        }
-        if let encodedData = try? JSONEncoder().encode(items) {
-            UserDefaults.standard.set(encodedData, forKey: itemsKey)
         }
         selectedItem = nil
     }
