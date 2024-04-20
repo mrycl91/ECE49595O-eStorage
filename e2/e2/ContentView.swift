@@ -23,7 +23,7 @@ struct ContentView: View {
                         HStack{
                             Text("Grocery Lists")
                                 .font(.system(size:26, weight: .bold))
-                                .position(x: 110, y: 60)
+                                .position(x: 100, y: 60)
                                 .foregroundColor(Color(hex: 0x535657))
 
                             Spacer()
@@ -68,7 +68,7 @@ struct ContentView: View {
                         }
                         .frame(height: proxy.size.height/6)
                         
-                        TextField(" Search", text: $searchText)
+                        TextField("  Search", text: $searchText)
                             .focused($showingKeyBoard)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             .padding(.horizontal)
