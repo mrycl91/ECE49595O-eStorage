@@ -96,6 +96,7 @@ struct MainView: View {
             ],
             "max_tokens": 150
         ]
+        
         let apiKey = ProcessInfo.processInfo.environment["GPT_APIKEY"] ?? ""
 
         let apiUrl = URL(string: "https://api.openai.com/v1/chat/completions")!
@@ -189,6 +190,8 @@ struct MealTypeSelectionView: View {
                 if let recommendationContent = recommendationContent {
                     ScrollView {
                         VStack {
+                            Spacer()
+                            
                             Text(recommendationContent)
                                 .padding()
                                 .foregroundColor(Color(hex: 0xdee7e7))
@@ -201,37 +204,47 @@ struct MealTypeSelectionView: View {
                                     
                                     // Check if the recipe is already saved
                                     if favoriteRecipes.contains(where: { $0.name == recipe.name })  {
-                                                showAlert = true
-                                                print("Recipe with name \(recipe.name) already exists in favorites") // Debugging statement
-                                            } else {
-                                                // Save the recipe as a favorite if it's not already saved
-                                                favoriteRecipes.append(recipe)
-                                                if let encoded = try? JSONEncoder().encode(self.favoriteRecipes) {
-                                                    UserDefaults.standard.set(encoded, forKey: "favoriteRecipes")
-                                                }
-                                                showAlert = true
-                                                print("Recipe with name \(recipe.name) added to favorites") // Debugging statement
-                                            }
+                                        showAlert = true
+                                        print("Recipe with name \(recipe.name) already exists in favorites") // Debugging statement
+                                    } else {
+                                        // Save the recipe as a favorite if it's not already saved
+                                        favoriteRecipes.append(recipe)
+                                        if let encoded = try? JSONEncoder().encode(self.favoriteRecipes) {
+                                            UserDefaults.standard.set(encoded, forKey: "favoriteRecipes")
+                                        }
+                                        showAlert = true
+                                        print("Recipe with name \(recipe.name) added to favorites") // Debugging statement
+                                    }
                                 } else {
                                     print("Failed to create Recipe object from recommendationContent")
                                 }
                             }) {
-                                Image(systemName: "heart")
-                                    .foregroundColor(.red)
+                                if let recipe = createRecipe(from: recommendationContent) {
+                                    if favoriteRecipes.contains(where: { $0.name == recipe.name })  {
+                                        Label("Already Saved", systemImage: "heart.fill")
+                                            .foregroundColor(Color(hex: 0xffc2d1))
+                                    } else {
+                                        Label("Save to Favorite", systemImage: "heart")
+                                            .foregroundColor(Color(hex: 0xffc2d1))
+                                    }
+                                }
+//                                Label("Save to Favorite", systemImage: "heart")
+//                                    .foregroundColor(Color(hex: 0xffc2d1))
                             }
                             .padding()
                             .alert(isPresented: $showAlert) {
-                                       Alert(title: Text("Recipe Saved"), message: Text("The recipe has been saved to your favorites!"), dismissButton: .default(Text("OK")))
-                                   }
-                            Button("Close recipe or Generate New Recipe", action: {
-                                                            isLoading = false
-                                                            decisionMade = false
-                                                        })
-                                                        .frame(width: 200, height: 45)
-                                                        .foregroundColor(Color(hex: 0xdee7e7))
-                                                        .background(Color(hex: 0x89a9a9))
-                                                        .cornerRadius(10)
-                                                        .padding(30)
+                                Alert(title: Text("Recipe Saved"), message: Text("The recipe has been saved to your favorites!"), dismissButton: .default(Text("OK")))
+                            }
+                            Button("Back", action: {
+                                isLoading = false
+                                decisionMade = false
+                            })
+                                .fontWeight(.semibold)
+                                .frame(width: 150, height: 45)
+                                .foregroundColor(Color(hex: 0xdee7e7))
+                                .background(Color(hex: 0x89a9a9))
+                                .cornerRadius(10)
+                                .padding(30)
                         }
                     }
                 } else if isLoading {
@@ -249,7 +262,7 @@ struct MealTypeSelectionView: View {
                             Text("Back")
                                 .fontWeight(.semibold)
                                 .foregroundColor(Color(hex: 0xdee7e7))
-                                .frame(width: 200, height: 30)
+                                .frame(width: 150, height: 45)
                                 .background(
                                     RoundedRectangle(
                                         cornerRadius: 10,
@@ -371,7 +384,6 @@ struct MealTypeSelectionView: View {
                     showingFavoriteRecipes.toggle()
                 }) {
                     Text("Favorite Recipes")
-                        .fontWeight(.semibold)
                         .foregroundColor(Color(hex: 0xdee7e7))
                         .frame(width: 200, height: 45)
                         .background(
@@ -399,19 +411,25 @@ struct FavoriteRecipesListView: View {
     var body: some View {
         NavigationView {
             VStack {
-                HStack {
-                  
-                    Spacer()
-                    TextField("Search", text: $searchText)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .padding(.horizontal)
-                        .frame(width: 200)
-                }
-                .padding(.top, 10)
-                .onTapGesture {
-                            // Dismiss keyboard when tapped outside of text field
-                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                        }
+                Color.clear.frame(height: 20)
+                
+                Text("    Favorite Recipes")
+                    .font(.system(size:26, weight: .bold))
+                    .foregroundColor(Color(hex: 0x535657))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top)
+                
+                TextField("  Search", text: $searchText)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding(.horizontal)
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 10)
+                    .onTapGesture {
+                        // Dismiss keyboard when tapped outside of text field
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    }
+                    .background(Color(hex: 0xdee7e7))
+                    .colorScheme(.light)
                 
                 List {
                     ForEach(filteredRecipes) { recipe in
@@ -419,11 +437,13 @@ struct FavoriteRecipesListView: View {
                             selectedRecipe = recipe
                         }) {
                             Text(recipe.name)
+                                .foregroundStyle(Color(hex: 0x535657))
                         }
                     }
                     .onDelete(perform: deleteRecipe)
                 }
-                .navigationTitle("Favorite Recipes")
+                .colorScheme(.light)
+                .scrollContentBackground(.hidden)
                 .sheet(item: $selectedRecipe) { recipe in
                     RecipeDetailsView(recipe: recipe)
                         .onDisappear {
@@ -431,19 +451,20 @@ struct FavoriteRecipesListView: View {
                         }
                 }
                 .onAppear {
-                          // Load favorite recipes from UserDefaults when the view appears
-                          if let data = UserDefaults.standard.data(forKey: "favoriteRecipes"),
-                             let decodedRecipes = try? JSONDecoder().decode([Recipe].self, from: data) {
-                              self.favoriteRecipes = decodedRecipes
-                          }
-                      }
-                .onReceive(NotificationCenter.default.publisher(for: UIApplication.willTerminateNotification)) { _ in
-                            // Save favorite recipes to UserDefaults when the app is about to terminate
-                            if let encoded = try? JSONEncoder().encode(self.favoriteRecipes) {
-                                UserDefaults.standard.set(encoded, forKey: "favoriteRecipes")
-                            }
+                    // Load favorite recipes from UserDefaults when the view appears
+                    if let data = UserDefaults.standard.data(forKey: "favoriteRecipes"),
+                        let decodedRecipes = try? JSONDecoder().decode([Recipe].self, from: data) {
+                            self.favoriteRecipes = decodedRecipes
                         }
+                    }
+                .onReceive(NotificationCenter.default.publisher(for: UIApplication.willTerminateNotification)) { _ in
+                    // Save favorite recipes to UserDefaults when the app is about to terminate
+                    if let encoded = try? JSONEncoder().encode(self.favoriteRecipes) {
+                        UserDefaults.standard.set(encoded, forKey: "favoriteRecipes")
+                    }
+                }
             }
+            .background(Color(hex: 0xdee7e7))
         }
     }
     
@@ -471,15 +492,20 @@ struct RecipeDetailsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
+                Spacer()
+                
                 Text(recipe.name)
                     .font(.title)
+                    .foregroundColor(Color(hex: 0x535657))
            
                 Text(recipe.information)
                     .font(.body) // Adjust the font size as needed
+                    .foregroundColor(Color(hex: 0x535657))
             }
             .padding()
         }
         .navigationTitle(recipe.name)
+        .background(Color(hex: 0xdee7e7))
     }
 }
 
