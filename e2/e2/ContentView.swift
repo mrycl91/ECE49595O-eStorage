@@ -110,6 +110,7 @@ struct ContentView: View {
                                 secondaryButton: .cancel()
                             )
                         }
+                        .scrollDismissesKeyboard(.interactively)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                     .alignmentGuide(.bottom){ dimension in
@@ -118,20 +119,18 @@ struct ContentView: View {
                 }
             }
 //            .onTapGesture {
-//           
 //                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
 //            }
-            .gesture(DragGesture(minimumDistance: 3.0, coordinateSpace: .local)
-                .onEnded { value in
-                    print(value.translation)
-                    switch(value.translation.width, value.translation.height) {
-                        case (-100...100, 0...):
-                            showingKeyBoard = false
-                        default:  print("no clue")
-                    }
-                }
-            )
-            .scrollDismissesKeyboard(.interactively)
+//            .gesture(DragGesture(minimumDistance: 3.0, coordinateSpace: .local)
+//                .onEnded { value in
+//                    print(value.translation)
+//                    switch(value.translation.width, value.translation.height) {
+//                        case (-100...100, 0...):
+//                            showingKeyBoard = false
+//                        default:  print("no clue")
+//                    }
+//                }
+//            )
             .background(Color(hex: 0xdee7e7))
         }
     private var filteredItems: [Item] {
