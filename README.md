@@ -22,8 +22,8 @@ This is the main directory that stores our app files and the configuration files
     - **SceneDelegate.swift**: File to control app life cycle. A similar function has been adapted to our MainView.swift.
     - **e2App.swift**: Old file to control our app life cycle and the main view of our app, which is not connected to our app now.
     - **obj_cam.swift and obj_page.swift**: Contains object recognition and text recognition code. Since the code has been adapted to AddItemView.swift, it's not directly connected to the app now.
-  -**model** 
-    -**Item.swift**: Contains the base class of our food items.
+  - **model** 
+    - **Item.swift**: Contains the base class of our food items.
   - **Resnet50.mlmodel**: Resnet50 pretrained models for object recognition.
 - **Info.plist**: This file is necessary as it contains the permissions for opening camera features in our app.
 
