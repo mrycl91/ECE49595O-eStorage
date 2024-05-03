@@ -35,6 +35,5 @@ class AddItemViewTests: XCTestCase {
         XCTAssertEqual(item.name, "Test Item")
         XCTAssertEqual(item.priorDay, 3)
         XCTAssertEqual(item.ifEnable, true)
-        // Further assertions for the item's other properties...
     }
 }
