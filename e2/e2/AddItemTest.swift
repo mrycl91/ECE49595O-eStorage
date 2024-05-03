@@ -1,5 +1,5 @@
 import XCTest
-@testable import YourAppModuleName // replace with your app's module name
+@testable import AddItemView
 
 class AddItemViewTests: XCTestCase {
     
