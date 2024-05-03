@@ -11,6 +11,7 @@ This is the main directory that stores our app files and the configuration files
   - **xcshareddata**: Contains shared data files used by all team members collaborating on the Xcode project.
   
 - **e2**: Directory that contains code files, UI design data ("Assets.xcassets"), and preview content.
+  - **Tests** : Contains unitests for our project.
   - **control&view**
     - **AddItemView.swift**: Contains the UI code and functions for adding food items to our storage list.
     - **BarCodeCameraView.swift**: Handles the functions associated with barcode UI and functions to deal with the barcode lookup API.
