@@ -27,6 +27,8 @@ Directory that contains code files, UI design data ("Assets.xcassets"), and prev
     - **Item.swift**: Contains the base class of our food items.
     - **Resnet50.mlmodel**: Resnet50 pretrained models for object recognition.
     - **SceneDelegate.swift**: File to control app life cycle. A similar function has been adapted to our MainView.swift.
+  - **Assets.xcassets**: Contains asset catalogs in Xcode projects. These catalogs organize various types of assets such as images, icons, app icons, launch images, color sets, and data sets.
+  - **Preview Content**: Contains mock-up images or other temporary content used for previewing the design of your app within Xcode's Interface Builder.
 
 ## e2Tests
 Contains unitests for our project.
